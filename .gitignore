@@ -1,0 +1,24 @@
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# C#/.NET
+bin/
+obj/
+*.user
+*.suo
+packages/
+App_Data/
+logs/
+
+# Node.js/React
+node_modules/
+dist/
+build/
+*.log
+.env*
+coverage/
