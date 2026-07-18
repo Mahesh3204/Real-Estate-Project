@@ -78,6 +78,7 @@ namespace RealEstate.Infrastructure
             // Register Security & History Services
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IGoogleTokenVerifier, GoogleTokenVerifier>();
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddScoped<IRecentlyViewedService, RecentlyViewedService>();
 
