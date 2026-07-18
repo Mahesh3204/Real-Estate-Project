@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore, type UserSession } from '../../store/authStore';
 import apiClient from '../../services/apiClient';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { login, logout, type UserSession } from '../../store/authSlice';
 
 const ProfilePage: React.FC = () => {
-  const { user, logout, login } = useAuthStore();
+  const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
@@ -23,7 +25,7 @@ const ProfilePage: React.FC = () => {
   }, [user]);
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/login');
   };
 
@@ -49,7 +51,7 @@ const ProfilePage: React.FC = () => {
         phoneNumber,
       } as any;
       
-      login(updatedUser, localStorage.getItem('accessToken') || '');
+      dispatch(login({ user: updatedUser, accessToken: localStorage.getItem('accessToken') || '' }));
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
     } catch (err: any) {
@@ -87,7 +89,7 @@ const ProfilePage: React.FC = () => {
             color: 'var(--accent)',
             border: '2px solid var(--accent)'
           }}>
-            {user.firstName[0]}{user.lastName[0]}
+            {(user.firstName?.[0] || '').toUpperCase()}{(user.lastName?.[0] || '').toUpperCase()}
           </div>
           <div style={{ textAlign: 'left' }}>
             <h2 style={{ fontSize: '20px' }}>{user.firstName} {user.lastName}</h2>

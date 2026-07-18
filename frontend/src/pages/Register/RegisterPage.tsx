@@ -1,37 +1,67 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
+import { MESSAGES } from '../../constants/messages';
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  phoneNumber: z.string().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+  role: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: MESSAGES.PASSWORDS_DONT_MATCH,
+  path: ['confirmPassword'],
+});
+
+type RegisterFields = z.infer<typeof registerSchema>;
 
 const RegisterPage: React.FC = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [role, setRole] = useState('Buyer'); // Admin, Agent, Buyer, Seller
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFields>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: 'Buyer',
+      phoneNumber: '',
+    },
+    mode: 'onChange',
+  });
+
+  const selectedRole = watch('role');
+
+  const onSubmit = async (data: RegisterFields) => {
     setError('');
-    setLoading(true);
 
     try {
       const response = await apiClient.post('/api/auth/register', {
-        email,
-        password,
-        firstName,
-        lastName,
-        phoneNumber,
-        role,
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        role: data.role,
       });
 
       const { userId } = response.data;
 
       // Navigate to OTP verification page and pass the registered user ID
-      navigate('/verify', { state: { userId, email } });
+      navigate('/verify', { state: { userId, email: data.email } });
     } catch (err: any) {
       const errorResponse = err.response?.data;
       if (errorResponse?.errors) {
@@ -39,10 +69,8 @@ const RegisterPage: React.FC = () => {
         const messages = Object.values(errorResponse.errors).flat().join(' ');
         setError(messages);
       } else {
-        setError(errorResponse?.detail || "Registration failed. Please check your inputs.");
+        setError(errorResponse?.detail || MESSAGES.REGISTRATION_FAILED);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -55,7 +83,7 @@ const RegisterPage: React.FC = () => {
 
       {error && <div className="alert-error">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div className="form-group">
             <label className="form-label" htmlFor="firstName">First Name</label>
@@ -64,10 +92,9 @@ const RegisterPage: React.FC = () => {
               id="firstName"
               className="form-input"
               placeholder="John"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
+              {...register('firstName')}
             />
+            {errors.firstName && <span className="input-error-msg">{errors.firstName.message}</span>}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="lastName">Last Name</label>
@@ -76,10 +103,9 @@ const RegisterPage: React.FC = () => {
               id="lastName"
               className="form-input"
               placeholder="Doe"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
+              {...register('lastName')}
             />
+            {errors.lastName && <span className="input-error-msg">{errors.lastName.message}</span>}
           </div>
         </div>
 
@@ -90,10 +116,9 @@ const RegisterPage: React.FC = () => {
             id="email"
             className="form-input"
             placeholder="john.doe@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            {...register('email')}
           />
+          {errors.email && <span className="input-error-msg">{errors.email.message}</span>}
         </div>
 
         <div className="form-group">
@@ -103,25 +128,51 @@ const RegisterPage: React.FC = () => {
             id="phoneNumber"
             className="form-input"
             placeholder="1234567890"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            {...register('phoneNumber')}
           />
+          {errors.phoneNumber && <span className="input-error-msg">{errors.phoneNumber.message}</span>}
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            className="form-input"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Min 8 chars, 1 uppercase, 1 number, 1 special char.
-          </p>
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              className="form-input"
+              placeholder="••••••••"
+              {...register('password')}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
+          {errors.password && <span className="input-error-msg">{errors.password.message}</span>}
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
+          <div className="password-input-wrapper">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              className="form-input"
+              placeholder="••••••••"
+              {...register('confirmPassword')}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
+          {errors.confirmPassword && <span className="input-error-msg">{errors.confirmPassword.message}</span>}
         </div>
 
         <div className="form-group">
@@ -130,8 +181,8 @@ const RegisterPage: React.FC = () => {
             {['Buyer', 'Seller', 'Agent', 'Admin'].map((opt) => (
               <div
                 key={opt}
-                className={`role-option ${role === opt ? 'selected' : ''}`}
-                onClick={() => setRole(opt)}
+                className={`role-option ${selectedRole === opt ? 'selected' : ''}`}
+                onClick={() => setValue('role', opt, { shouldValidate: true })}
               >
                 {opt}
               </div>
@@ -139,8 +190,8 @@ const RegisterPage: React.FC = () => {
           </div>
         </div>
 
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? "Creating Account..." : "Sign Up"}
+        <button type="submit" className="btn-primary">
+          Sign Up
         </button>
       </form>
 

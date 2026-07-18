@@ -1,33 +1,53 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
-import { useAuthStore, type UserSession } from '../../store/authStore';
-import GoogleLoginButton from '../../components/Auth/GoogleLoginButton';
+import { MESSAGES } from '../../constants/messages';
+import { useAppDispatch } from '../../store/hooks';
+import { login, type UserSession } from '../../store/authSlice';
+import { showToast } from '../../store/toastSlice';
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFields = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Buyer'); // Role selected for Google SSO login fallback
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const dispatch = useAppDispatch();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFields>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onChange',
+  });
+
+  const onSubmit = async (data: LoginFields) => {
     setError('');
-    setLoading(true);
 
     try {
       const response = await apiClient.post('/api/auth/login', {
-        email,
-        password,
+        email: data.email,
+        password: data.password,
       });
 
       const { accessToken, user } = response.data;
 
       // Save to store
-      login(user as UserSession, accessToken);
+      dispatch(login({ user: user as UserSession, accessToken }));
+
+      // Show success toast
+      dispatch(showToast({ message: MESSAGES.LOGIN_SUCCESS, type: 'success' }));
 
       // Redirect to profile
       navigate('/profile');
@@ -38,10 +58,8 @@ const LoginPage: React.FC = () => {
         const messages = Object.values(errorResponse.errors).flat().join(' ');
         setError(messages);
       } else {
-        setError(errorResponse?.detail || "Invalid email or password.");
+        setError(errorResponse?.detail || MESSAGES.LOGIN_FAILED);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -54,7 +72,7 @@ const LoginPage: React.FC = () => {
 
       {error && <div className="alert-error">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label className="form-label" htmlFor="email">Email Address</label>
           <input
@@ -62,56 +80,41 @@ const LoginPage: React.FC = () => {
             id="email"
             className="form-input"
             placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            {...register('email')}
           />
+          {errors.email && <span className="input-error-msg">{errors.email.message}</span>}
         </div>
 
         <div className="form-group" style={{ marginBottom: '25px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <label className="form-label" htmlFor="password">Password</label>
-            <Link to="/reset-password" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: '500' }}>
+            <Link to="/forgot-password" style={{ fontSize: '13px', color: 'var(--accent)', textDecoration: 'none', fontWeight: '500' }}>
               Forgot password?
             </Link>
           </div>
-          <input
-            type="password"
-            id="password"
-            className="form-input"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              className="form-input"
+              placeholder="••••••••"
+              {...register('password')}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
+          </div>
+          {errors.password && <span className="input-error-msg">{errors.password.message}</span>}
         </div>
 
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
+        <button type="submit" className="btn-primary">
+          Sign In
         </button>
       </form>
-
-      <div className="divider">or</div>
-
-      <div className="form-group">
-        <label className="form-label">Sign in with Google as:</label>
-        <div className="role-selector">
-          {['Buyer', 'Seller', 'Agent', 'Admin'].map((opt) => (
-            <div
-              key={opt}
-              className={`role-option ${role === opt ? 'selected' : ''}`}
-              onClick={() => setRole(opt)}
-            >
-              {opt}
-            </div>
-          ))}
-        </div>
-        <GoogleLoginButton
-          role={role}
-          onSuccess={() => navigate('/profile')}
-          onError={(msg) => setError(msg)}
-        />
-      </div>
 
       <div className="footer-link">
         Don't have an account? <Link to="/register">Sign Up</Link>

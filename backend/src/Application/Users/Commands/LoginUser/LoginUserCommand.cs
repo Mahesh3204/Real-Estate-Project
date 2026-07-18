@@ -56,7 +56,7 @@ namespace RealEstate.Application.Users.Commands.LoginUser
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                throw new Exception("Invalid email or password.");
+                throw new UnauthorizedAccessException("Invalid email or password.");
             }
 
             var token = _tokenGenerator.GenerateToken(user);

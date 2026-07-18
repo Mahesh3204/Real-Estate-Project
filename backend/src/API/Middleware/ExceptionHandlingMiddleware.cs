@@ -30,7 +30,16 @@ namespace RealEstate.API.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
+                // Suppress severe error logs for typical client/unauthorized request errors
+                if (ex is not ValidationException && ex is not UnauthorizedAccessException)
+                {
+                    _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
+                }
+                else
+                {
+                    _logger.LogWarning("A client request error occurred: {Message}", ex.Message);
+                }
+
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -52,11 +61,19 @@ namespace RealEstate.API.Middleware
                     problemDetails.Extensions["errors"] = validationException.Errors;
                     break;
 
+                case UnauthorizedAccessException unauthorizedException:
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    problemDetails.Status = StatusCodes.Status401Unauthorized;
+                    problemDetails.Type = "https://tools.ietf.org/html/rfc7807";
+                    problemDetails.Title = "Unauthorized";
+                    problemDetails.Detail = unauthorizedException.Message;
+                    break;
+
                 default:
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     problemDetails.Status = StatusCodes.Status500InternalServerError;
                     problemDetails.Title = "An internal server error occurred.";
-                    problemDetails.Detail = _env.IsDevelopment() ? exception.StackTrace : "An error occurred on the server.";
+                    problemDetails.Detail = "An unexpected error occurred on the server.";
                     break;
             }
 

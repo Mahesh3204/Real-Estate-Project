@@ -23,8 +23,10 @@ namespace RealEstate.Application.UnitTests.Users.Commands
             var store = Substitute.For<IUserStore<User>>();
             _userManager = Substitute.For<UserManager<User>>(store, null, null, null, null, null, null, null, null);
             _emailSender = Substitute.For<IEmailSender>();
+            var configuration = Substitute.For<Microsoft.Extensions.Configuration.IConfiguration>();
+            configuration["FrontendUrl"].Returns("http://localhost:5173");
 
-            _forgotHandler = new ForgotPasswordCommandHandler(_userManager, _emailSender);
+            _forgotHandler = new ForgotPasswordCommandHandler(_userManager, _emailSender, configuration);
             _resetHandler = new ResetPasswordCommandHandler(_userManager);
         }
 
@@ -45,7 +47,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
             result.Should().BeTrue();
             await _emailSender.Received(1).SendEmailAsync(
                 command.Email,
-                "Reset Password Token",
+                "Reset Password",
                 Arg.Is<string>(x => x.Contains("mocked-reset-token"))
             );
         }

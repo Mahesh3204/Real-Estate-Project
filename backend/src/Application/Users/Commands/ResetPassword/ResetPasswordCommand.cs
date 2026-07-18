@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using RealEstate.Application.Common.Interfaces;
 using RealEstate.Domain.Entities;
 
@@ -27,11 +28,13 @@ namespace RealEstate.Application.Users.Commands.ResetPassword
     {
         private readonly UserManager<User> _userManager;
         private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _configuration;
 
-        public ForgotPasswordCommandHandler(UserManager<User> userManager, IEmailSender emailSender)
+        public ForgotPasswordCommandHandler(UserManager<User> userManager, IEmailSender emailSender, IConfiguration configuration)
         {
             _userManager = userManager;
             _emailSender = emailSender;
+            _configuration = configuration;
         }
 
         public async Task<bool> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -45,12 +48,14 @@ namespace RealEstate.Application.Users.Commands.ResetPassword
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+            var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
 
             // Send reset email
             await _emailSender.SendEmailAsync(
                 user.Email!,
-                "Reset Password Token",
-                $"Your password reset token is: {token}. This code can be used to set a new password."
+                "Reset Password",
+                $"Please reset your password by clicking the following link:\n\n{resetLink}\n\nThis link will automatically load the password reset page."
             );
 
             return true;

@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-primary: #f8fafc;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border: #e2e8f0;
-  --accent: #aa3bff;
-  --accent-hover: #8b2fd6;
-  --accent-light: rgba(170, 59, 255, 0.08);
-  --error: #ef4444;
-  --success: #22c55e;
-  --input-bg: #ffffff;
+  --bg-primary: #0f172a;
+  --bg-card: rgba(15, 23, 42, 0.45);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #b75eff;
+  --accent-hover: #aa3bff;
+  --accent-light: rgba(183, 94, 255, 0.15);
+  --error: #f87171;
+  --success: #4ade80;
+  --input-bg: rgba(15, 23, 42, 0.5);
   
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --heading: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -28,9 +28,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top right, rgba(170, 59, 255, 0.06), transparent 50%),
-              radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.06), transparent 50%),
-              #f8fafc;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.75)),
+              url('/luxury-bg.png') no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -49,22 +49,22 @@ body {
 /* Premium Card Glassmorphism */
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05),
-              0 0 0 1px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
   border-radius: 24px;
   padding: 40px;
   width: 100%;
   max-width: 440px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
 .glass-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 30px 50px -10px rgba(170, 59, 255, 0.08),
-              0 0 0 1px rgba(170, 59, 255, 0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 h1, h2, h3 {
@@ -158,7 +158,7 @@ h1, h2, h3 {
 .btn-social {
   width: 100%;
   padding: 12px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
   border-radius: 12px;
   display: flex;
@@ -174,8 +174,8 @@ h1, h2, h3 {
 }
 
 .btn-social:hover {
-  background-color: var(--bg-primary);
-  border-color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
 }
 
 .role-selector {
@@ -192,15 +192,21 @@ h1, h2, h3 {
   border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
 }
 
+.role-option:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
 .role-option.selected {
   background-color: var(--accent-light);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 .alert-error {
@@ -239,3 +245,193 @@ h1, h2, h3 {
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Global Loader Overlay */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  animation: loaderFadeIn 0.25s ease-out forwards;
+}
+
+.loader-spinner {
+  width: 56px;
+  height: 56px;
+  border: 5px solid rgba(170, 59, 255, 0.1);
+  border-left-color: var(--accent);
+  border-radius: 50%;
+  animation: loaderSpin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: 0 0 15px rgba(170, 59, 255, 0.2);
+}
+
+.loader-text {
+  margin-top: 16px;
+  color: white;
+  font-family: var(--heading);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes loaderSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loaderFadeIn {
+  to { opacity: 1; }
+}
+
+/* Password Input Wrapper with Toggle Visibility */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 48px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.password-toggle-btn:hover {
+  color: var(--accent);
+  background-color: var(--accent-light);
+}
+
+/* Toast Notification styling */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.toast-card {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-left: 5px solid var(--accent);
+}
+
+.toast-card.success {
+  border-left-color: var(--success);
+}
+
+.toast-card.error {
+  border-left-color: var(--error);
+}
+
+.toast-card.info {
+  border-left-color: var(--accent);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-card.success .toast-icon {
+  color: var(--success);
+}
+
+.toast-card.error .toast-icon {
+  color: var(--error);
+}
+
+.toast-card.info .toast-icon {
+  color: var(--accent);
+}
+
+.toast-content {
+  flex-grow: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  text-align: left;
+}
+
+.toast-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-top: -2px;
+}
+
+.toast-close-btn:hover {
+  background-color: var(--accent-light);
+  color: var(--text-primary);
+}
+
+@keyframes toastSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.input-error-msg {
+  display: block;
+  font-size: 13px;
+  color: var(--error);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+
