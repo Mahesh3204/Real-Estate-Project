@@ -258,3 +258,25 @@ export const getAuditLogs = async (params: { pageNumber: number; pageSize: numbe
   return response.data;
 };
 
+// --- Settings ---
+export const getSettings = async () => {
+  const response = await apiClient.get<{ success: boolean; data: Record<string, string> }>('/api/v1/admin/settings');
+  return response.data;
+};
+
+export const updateSetting = async (key: string, value: string) => {
+  const response = await apiClient.post<{ success: boolean; message: string }>('/api/v1/admin/settings', { key, value });
+  return response.data;
+};
+
+// --- User Management ---
+export const getUsers = async (params: { pageNumber: number; pageSize: number; searchQuery?: string }) => {
+  const response = await apiClient.get('/api/v1/admin/users', { params });
+  return response.data;
+};
+
+export const updateUserRoles = async (userId: string, roles: string[]) => {
+  const response = await apiClient.post<{ success: boolean; message: string }>(`/api/v1/admin/users/${userId}/roles`, { roles });
+  return response.data;
+};
+

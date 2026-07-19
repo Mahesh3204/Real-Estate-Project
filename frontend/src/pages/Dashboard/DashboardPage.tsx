@@ -14,6 +14,7 @@ import apiClient from '../../services/apiClient';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
+  const currentRole = user?.activeRole || user?.role;
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     bookmarks: 0,
@@ -32,7 +33,7 @@ const DashboardPage: React.FC = () => {
         let locationsCount = 0;
         let auditLogsCount = 0;
 
-        if (user?.role === 'Admin') {
+        if (currentRole === 'Admin') {
           const countriesRes = await apiClient.get('/api/v1/locations/countries');
           locationsCount = countriesRes.data.data?.length || 0;
           const auditRes = await apiClient.get('/api/v1/admin/audit-logs', { params: { pageSize: 1, pageNumber: 1 } });
@@ -62,7 +63,7 @@ const DashboardPage: React.FC = () => {
         </h2>
         <p className="text-[15px] text-text-secondary m-0 leading-relaxed">
           Explore luxury properties, keep track of your saved listings, submit inquiries, and manage your user details. 
-          {user?.role === 'Admin' && ' You have full administrative credentials to config roles, permissions, geo-locations, and review auditing logs.'}
+          {currentRole === 'Admin' && ' You have full administrative credentials to config roles, permissions, geo-locations, and review auditing logs.'}
         </p>
       </div>
 
@@ -88,7 +89,7 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {user?.role === 'Admin' ? (
+        {currentRole === 'Admin' ? (
           <>
             <div className="dashboard-stat-card">
               <div className="dashboard-stat-icon">
@@ -154,8 +155,8 @@ const DashboardPage: React.FC = () => {
               <span className="break-all text-right">{user?.email}</span>
             </div>
             <div className="flex justify-between items-center gap-2.5 text-sm flex-wrap">
-              <span className="text-text-secondary">Identity Role</span>
-              <span className="text-accent font-bold">{user?.role}</span>
+              <span className="text-text-secondary">Active Role</span>
+              <span className="text-accent font-bold">{currentRole}</span>
             </div>
             <div className="flex justify-between items-center gap-2.5 text-sm flex-wrap">
               <span className="text-text-secondary">Verification Status</span>
@@ -184,7 +185,7 @@ const DashboardPage: React.FC = () => {
             >
               <FiBookmark /> Bookmarks
             </button>
-            {user?.role === 'Admin' && (
+            {currentRole === 'Admin' && (
               <>
                 <button 
                   className="btn-primary flex items-center justify-center gap-2 p-3 col-span-2" 

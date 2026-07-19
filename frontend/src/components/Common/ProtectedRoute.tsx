@@ -16,7 +16,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+  const currentRole = user?.activeRole || user?.role;
+  if (allowedRoles && user && currentRole && !allowedRoles.includes(currentRole)) {
     // If the user's role is not allowed, redirect to main Dashboard view
     return <Navigate to="/not-found" replace />;
   }

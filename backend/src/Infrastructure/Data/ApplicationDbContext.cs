@@ -51,6 +51,10 @@ namespace RealEstate.Infrastructure.Data
         public DbSet<PropertyFloorPlan> PropertyFloorPlans { get; set; } = null!;
         public DbSet<PropertyAuditLog> PropertyAuditLogs { get; set; } = null!;
 
+        public DbSet<RoleRequest> RoleRequests { get; set; } = null!;
+        public DbSet<RoleRequestHistory> RoleRequestHistories { get; set; } = null!;
+        public DbSet<SystemSetting> SystemSettings { get; set; } = null!;
+
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -427,6 +431,61 @@ namespace RealEstate.Infrastructure.Data
                     .WithMany()
                     .HasForeignKey(l => l.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure ActiveRole relationship on User
+            builder.Entity<User>()
+                .HasOne(u => u.ActiveRole)
+                .WithMany()
+                .HasForeignKey(u => u.ActiveRoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure RoleRequest
+            builder.Entity<RoleRequest>(entity =>
+            {
+                entity.ToTable("role_requests");
+                entity.HasKey(r => r.Id);
+
+                entity.HasOne(r => r.User)
+                    .WithMany()
+                    .HasForeignKey(r => r.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(r => r.RequestedRole)
+                    .WithMany()
+                    .HasForeignKey(r => r.RequestedRoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.Reviewer)
+                    .WithMany()
+                    .HasForeignKey(r => r.ReviewedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure RoleRequestHistory
+            builder.Entity<RoleRequestHistory>(entity =>
+            {
+                entity.ToTable("role_request_histories");
+                entity.HasKey(rh => rh.Id);
+
+                entity.HasOne(rh => rh.Request)
+                    .WithMany()
+                    .HasForeignKey(rh => rh.RequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rh => rh.ChangedByUser)
+                    .WithMany()
+                    .HasForeignKey(rh => rh.ChangedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure SystemSetting
+            builder.Entity<SystemSetting>(entity =>
+            {
+                entity.ToTable("system_settings");
+                entity.HasKey(s => s.Key);
+                entity.Property(s => s.Key).HasMaxLength(100);
+                entity.Property(s => s.Value).HasMaxLength(500);
             });
         }
     }

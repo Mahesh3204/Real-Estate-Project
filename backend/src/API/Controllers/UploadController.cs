@@ -32,11 +32,11 @@ namespace RealEstate.API.Controllers
             try
             {
                 string subFolder = folder ?? "general";
-                
+
                 using (var stream = file.OpenReadStream())
                 {
                     string fileUrl = await _fileUploadService.UploadFileAsync(stream, file.FileName, file.ContentType, subFolder);
-                    
+
                     var dbFile = new Domain.Entities.File
                     {
                         FileName = file.FileName,

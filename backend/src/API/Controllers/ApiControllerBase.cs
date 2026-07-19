@@ -25,7 +25,7 @@ namespace RealEstate.API.Controllers
             get
             {
                 if (User.Identity?.IsAuthenticated != true) return null;
-                var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                           ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
                 return val != null ? Guid.Parse(val) : null;
             }

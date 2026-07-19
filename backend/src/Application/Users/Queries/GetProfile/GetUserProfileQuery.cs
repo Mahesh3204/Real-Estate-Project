@@ -17,6 +17,8 @@ namespace RealEstate.Application.Users.Queries.GetProfile
         public string LastName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string Role { get; set; } = string.Empty;
+        public System.Collections.Generic.List<string> AssignedRoles { get; set; } = new();
+        public string ActiveRole { get; set; } = string.Empty;
         public bool IsVerified { get; set; }
         public string? AvatarUrl { get; set; }
         public string? Gender { get; set; }
@@ -45,11 +47,16 @@ namespace RealEstate.Application.Users.Queries.GetProfile
     public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, UserProfileDto>
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IApplicationDbContext _context;
 
-        public GetUserProfileQueryHandler(UserManager<User> userManager, IApplicationDbContext context)
+        public GetUserProfileQueryHandler(
+            UserManager<User> userManager,
+            RoleManager<Role> roleManager,
+            IApplicationDbContext context)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _context = context;
         }
 
@@ -81,6 +88,18 @@ namespace RealEstate.Application.Users.Queries.GetProfile
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
+            var assignedRoles = (await _userManager.GetRolesAsync(user)).ToList();
+            var activeRole = string.Empty;
+            if (user.ActiveRoleId.HasValue)
+            {
+                var roleObj = await _roleManager.FindByIdAsync(user.ActiveRoleId.Value.ToString());
+                activeRole = roleObj?.Name ?? string.Empty;
+            }
+            if (string.IsNullOrEmpty(activeRole) && assignedRoles.Count > 0)
+            {
+                activeRole = assignedRoles[0]; // fallback
+            }
+
             return new UserProfileDto
             {
                 Id = user.Id,
@@ -89,6 +108,8 @@ namespace RealEstate.Application.Users.Queries.GetProfile
                 LastName = profile.LastName,
                 Phone = profile.Phone,
                 Role = user.Role,
+                AssignedRoles = assignedRoles,
+                ActiveRole = activeRole,
                 IsVerified = user.IsVerified,
                 AvatarUrl = profile.AvatarUrl,
                 Gender = profile.Gender,

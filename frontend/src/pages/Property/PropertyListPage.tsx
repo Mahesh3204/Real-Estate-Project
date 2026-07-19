@@ -25,6 +25,7 @@ const PropertyListPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const currentRole = user?.activeRole || user?.role;
 
   // States
   const [properties, setProperties] = useState<PropertyDto[]>([]);
@@ -85,7 +86,7 @@ const PropertyListPage: React.FC = () => {
         pageSize,
         searchQuery: search || undefined,
         categoryId: selectedCategory || undefined,
-        onlyOwner: user?.role === 'Agent', // If agent, restrict to owner's own listings. Otherwise (buyer, admin) show all.
+        onlyOwner: currentRole === 'Agent', // If agent, restrict to owner's own listings. Otherwise (buyer, admin) show all.
         sortBy: 'newest',
       };
 
@@ -228,15 +229,15 @@ const PropertyListPage: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {user?.role === 'Buyer' ? 'Properties Directory' : 'Properties Workspace'}
+            {currentRole === 'Buyer' ? 'Properties Directory' : 'Properties Workspace'}
           </h1>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            {user?.role === 'Buyer' 
+            {currentRole === 'Buyer' 
               ? 'Browse and search for premium verified property listings available for sale or rent.' 
               : 'Manage your real estate listings, drafts, and approval requests in one single place.'}
           </p>
         </div>
-        {user?.role !== 'Buyer' && (
+        {currentRole !== 'Buyer' && (
           <button
             onClick={() => navigate('/properties/wizard')}
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-95"
@@ -248,7 +249,7 @@ const PropertyListPage: React.FC = () => {
       </div>
 
       {/* Tabs list */}
-      {user?.role !== 'Buyer' && (
+      {currentRole !== 'Buyer' && (
         <div className="flex overflow-x-auto gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 mb-6">
           {['all', 'draft', 'pending', 'published', 'archived', 'rejected'].map(tab => (
             <button
@@ -471,38 +472,47 @@ const PropertyListPage: React.FC = () => {
                   <div className="text-[10px] text-slate-400">
                     Created: {new Date(p.createdDate).toLocaleDateString()}
                   </div>
-                  <div className="flex gap-1.5 flex-wrap justify-end">
-                    <button
-                      onClick={() => navigate(`/properties/view/${p.slug || p.id}`)}
-                      className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white rounded-lg dark:hover:bg-slate-800 transition-all"
-                      title="View Details"
-                    >
-                      <FiEye className="w-4 h-4" />
-                    </button>
-                    {p.publishStatus === 0 && (
-                      <button
-                        onClick={() => navigate(`/properties/wizard?id=${p.id}`)}
-                        className="p-1.5 text-slate-500 hover:text-yellow-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-yellow-400 rounded-lg dark:hover:bg-slate-800 transition-all"
-                        title="Edit Details"
-                      >
-                        <FiEdit2 className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDuplicate(p.id)}
-                      className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg dark:hover:bg-slate-800 transition-all"
-                      title="Clone"
-                    >
-                      <FiCopy className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleSingleDelete(p.id)}
-                      className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-red-400 rounded-lg dark:hover:bg-slate-800 transition-all"
-                      title="Delete"
-                    >
-                      <FiTrash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {(() => {
+                    const canManage = user?.activeRole === 'Admin' || p.ownerId === user?.id;
+                    return (
+                      <div className="flex gap-1.5 flex-wrap justify-end">
+                        <button
+                          onClick={() => navigate(`/properties/view/${p.slug || p.id}`)}
+                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white rounded-lg dark:hover:bg-slate-800 transition-all"
+                          title="View Details"
+                        >
+                          <FiEye className="w-4 h-4" />
+                        </button>
+                        {canManage && p.publishStatus === 0 && (
+                          <button
+                            onClick={() => navigate(`/properties/wizard?id=${p.id}`)}
+                            className="p-1.5 text-slate-500 hover:text-yellow-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-yellow-400 rounded-lg dark:hover:bg-slate-800 transition-all"
+                            title="Edit Details"
+                          >
+                            <FiEdit2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        {canManage && (
+                          <>
+                            <button
+                              onClick={() => handleDuplicate(p.id)}
+                              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg dark:hover:bg-slate-800 transition-all"
+                              title="Clone"
+                            >
+                              <FiCopy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSingleDelete(p.id)}
+                              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-red-400 rounded-lg dark:hover:bg-slate-800 transition-all"
+                              title="Delete"
+                            >
+                              <FiTrash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -575,38 +585,47 @@ const PropertyListPage: React.FC = () => {
                     <td className="py-4 px-6 font-bold text-slate-800 dark:text-white whitespace-nowrap">${p.price.toLocaleString()}</td>
                     <td className="py-4 px-6 whitespace-nowrap">{getStatusBadge(p.publishStatus)}</td>
                     <td className="py-4 px-6 text-right whitespace-nowrap">
-                      <div className="flex gap-1 justify-end">
-                        <button
-                          onClick={() => navigate(`/properties/view/${p.slug || p.id}`)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
-                          title="View"
-                        >
-                          <FiEye className="w-4 h-4" />
-                        </button>
-                        {p.publishStatus === 0 && (
-                          <button
-                            onClick={() => navigate(`/properties/wizard?id=${p.id}`)}
-                            className="p-1.5 text-slate-500 hover:text-yellow-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
-                            title="Edit"
-                          >
-                            <FiEdit2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDuplicate(p.id)}
-                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
-                          title="Clone"
-                        >
-                          <FiCopy className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleSingleDelete(p.id)}
-                          className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
-                          title="Delete"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {(() => {
+                        const canManage = user?.activeRole === 'Admin' || p.ownerId === user?.id;
+                        return (
+                          <div className="flex gap-1 justify-end">
+                            <button
+                              onClick={() => navigate(`/properties/view/${p.slug || p.id}`)}
+                              className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
+                              title="View"
+                            >
+                              <FiEye className="w-4 h-4" />
+                            </button>
+                            {canManage && p.publishStatus === 0 && (
+                              <button
+                                onClick={() => navigate(`/properties/wizard?id=${p.id}`)}
+                                className="p-1.5 text-slate-500 hover:text-yellow-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                title="Edit"
+                              >
+                                <FiEdit2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            {canManage && (
+                              <>
+                                <button
+                                  onClick={() => handleDuplicate(p.id)}
+                                  className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                  title="Clone"
+                                >
+                                  <FiCopy className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleSingleDelete(p.id)}
+                                  className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all"
+                                  title="Delete"
+                                >
+                                  <FiTrash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}

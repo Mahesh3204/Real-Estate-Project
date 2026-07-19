@@ -10,6 +10,8 @@ export interface UserSession {
   isVerified: boolean;
   profilePictureUrl?: string;
   phoneNumber?: string;
+  assignedRoles?: string[];
+  activeRole?: string;
 }
 
 interface AuthState {

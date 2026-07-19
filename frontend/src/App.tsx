@@ -25,6 +25,9 @@ import AdminLocationsPage from './pages/Admin/AdminLocationsPage';
 import AdminMasterDataPage from './pages/Admin/AdminMasterDataPage';
 import AdminAuditLogsPage from './pages/Admin/AdminAuditLogsPage';
 import AdminPropertiesPage from './pages/Admin/AdminPropertiesPage';
+import AdminRoleRequestsPage from './pages/Admin/AdminRoleRequestsPage';
+import AdminSettingsPage from './pages/Admin/AdminSettingsPage';
+import UserManagementPage from './pages/Admin/UserManagementPage';
 
 // Property pages
 import PropertyListPage from './pages/Property/PropertyListPage';
@@ -53,9 +56,9 @@ const App: React.FC = () => {
           <Route path="/inquiry-history" element={<InquiryHistoryPage />} />
           
           {/* Property workspace routes */}
-          <Route path="/properties" element={<PropertyListPage />} />
-          <Route path="/properties/wizard" element={<PropertyWizardPage />} />
-          <Route path="/properties/view/:slugOrId" element={<PropertyDetailsPage />} />
+          <Route path="/properties" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin', 'Buyer']}><PropertyListPage /></ProtectedRoute>} />
+          <Route path="/properties/wizard" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin']}><PropertyWizardPage /></ProtectedRoute>} />
+          <Route path="/properties/view/:slugOrId" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin', 'Buyer']}><PropertyDetailsPage /></ProtectedRoute>} />
           
           {/* Admin panel routes */}
           <Route path="/admin/roles" element={<ProtectedRoute allowedRoles={['Admin']}><AdminRolesPage /></ProtectedRoute>} />
@@ -64,6 +67,9 @@ const App: React.FC = () => {
           <Route path="/admin/master-data" element={<ProtectedRoute allowedRoles={['Admin']}><AdminMasterDataPage /></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute allowedRoles={['Admin']}><AdminAuditLogsPage /></ProtectedRoute>} />
           <Route path="/admin/properties" element={<ProtectedRoute allowedRoles={['Admin']}><AdminPropertiesPage /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['Admin']}><UserManagementPage /></ProtectedRoute>} />
+          <Route path="/admin/role-requests" element={<ProtectedRoute allowedRoles={['Admin']}><AdminRoleRequestsPage /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['Admin']}><AdminSettingsPage /></ProtectedRoute>} />
         </Route>
 
         {/* Redirect Root / to Dashboard */}

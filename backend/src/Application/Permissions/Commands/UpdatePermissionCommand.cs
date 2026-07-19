@@ -30,7 +30,7 @@ namespace RealEstate.Application.Permissions.Commands
                 {
                     var existing = await _context.Permissions
                         .FirstOrDefaultAsync(p => p.Name == name, cancellation);
-                    
+
                     return existing == null || existing.Id == command.Id;
                 }).WithMessage("Permission name must be unique.");
         }

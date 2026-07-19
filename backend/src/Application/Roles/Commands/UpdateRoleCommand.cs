@@ -31,7 +31,7 @@ namespace RealEstate.Application.Roles.Commands
                 {
                     var existingRole = await _roleManager.Roles
                         .FirstOrDefaultAsync(r => r.Name == name, cancellation);
-                    
+
                     return existingRole == null || existingRole.Id == command.Id;
                 }).WithMessage("Role name must be unique.");
         }

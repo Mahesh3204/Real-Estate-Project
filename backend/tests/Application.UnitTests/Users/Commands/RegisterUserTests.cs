@@ -14,6 +14,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
     public class RegisterUserTests
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IEmailSender _emailSender;
         private readonly RegisterUserCommandHandler _handler;
 
@@ -21,8 +22,12 @@ namespace RealEstate.Application.UnitTests.Users.Commands
         {
             var store = Substitute.For<IUserStore<User>>();
             _userManager = Substitute.For<UserManager<User>>(store, null, null, null, null, null, null, null, null);
+
+            var roleStore = Substitute.For<IRoleStore<Role>>();
+            _roleManager = Substitute.For<RoleManager<Role>>(roleStore, null, null, null, null);
+
             _emailSender = Substitute.For<IEmailSender>();
-            _handler = new RegisterUserCommandHandler(_userManager, _emailSender);
+            _handler = new RegisterUserCommandHandler(_userManager, _roleManager, _emailSender);
         }
 
         [Fact]
@@ -39,7 +44,18 @@ namespace RealEstate.Application.UnitTests.Users.Commands
                 Role = "Buyer"
             };
 
+            var buyerRole = new Role("Buyer");
+
             _userManager.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
+                .Returns(IdentityResult.Success);
+
+            _userManager.AddToRoleAsync(Arg.Any<User>(), Arg.Any<string>())
+                .Returns(IdentityResult.Success);
+
+            _roleManager.FindByNameAsync("Buyer")
+                .Returns(buyerRole);
+
+            _userManager.UpdateAsync(Arg.Any<User>())
                 .Returns(IdentityResult.Success);
 
             // Act
@@ -51,9 +67,13 @@ namespace RealEstate.Application.UnitTests.Users.Commands
                 u.Email == command.Email &&
                 u.FirstName == command.FirstName &&
                 u.LastName == command.LastName &&
-                u.Role == command.Role &&
+                u.Role == "Buyer" &&
                 !u.IsVerified
             ), command.Password);
+
+            await _userManager.Received(1).AddToRoleAsync(Arg.Any<User>(), "Buyer");
+            await _roleManager.Received(1).FindByNameAsync("Buyer");
+            await _userManager.Received(1).UpdateAsync(Arg.Is<User>(u => u.ActiveRoleId == buyerRole.Id));
         }
 
         [Fact]

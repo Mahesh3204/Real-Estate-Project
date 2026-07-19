@@ -49,7 +49,7 @@ namespace RealEstate.Application.Properties.Queries
         public string? FurnishedStatus { get; set; }
         public int? YearBuilt { get; set; }
         public string? FacingDirection { get; set; }
-        
+
         public Guid? CountryId { get; set; }
         public Guid? StateId { get; set; }
         public Guid? CityId { get; set; }
@@ -57,12 +57,12 @@ namespace RealEstate.Application.Properties.Queries
         public Guid? PropertyTypeId { get; set; }
         public Guid? StatusId { get; set; }
         public Guid? ConditionId { get; set; }
-        
+
         public string? Landmark { get; set; }
         public string? ZipCode { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        
+
         public string? MetaTitle { get; set; }
         public string? MetaDescription { get; set; }
         public string? MetaKeywords { get; set; }
@@ -141,7 +141,7 @@ namespace RealEstate.Application.Properties.Queries
         public ListingType? ListingType { get; set; }
         public bool OnlyOwner { get; set; } = false;
         public string SortBy { get; set; } = "newest";
-        
+
         // Context parameter passed from Controller
         public Guid? RequesterUserId { get; set; }
         public string? RequesterRole { get; set; }
@@ -155,7 +155,7 @@ namespace RealEstate.Application.Properties.Queries
         public string? RequesterRole { get; set; }
     }
 
-    public class GetPropertiesQueriesHandler : 
+    public class GetPropertiesQueriesHandler :
         IRequestHandler<GetPropertyListQuery, PaginatedList<PropertyDto>>,
         IRequestHandler<GetPropertyDetailsQuery, PropertyDetailsDto>
     {
@@ -222,7 +222,7 @@ namespace RealEstate.Application.Properties.Queries
             if (!string.IsNullOrWhiteSpace(request.SearchQuery))
             {
                 var term = request.SearchQuery.ToLower();
-                query = query.Where(p => p.Title.ToLower().Contains(term) || 
+                query = query.Where(p => p.Title.ToLower().Contains(term) ||
                                          (p.Description != null && p.Description.ToLower().Contains(term)) ||
                                          (p.Address != null && p.Address.ToLower().Contains(term)));
             }
@@ -262,7 +262,7 @@ namespace RealEstate.Application.Properties.Queries
                     StateName = p.State != null ? p.State.Name : string.Empty,
                     CityName = p.City != null ? p.City.Name : string.Empty,
                     AreaText = p.AreaText,
-                    FeaturedImageUrl = p.Media.Where(m => m.IsFeatured).Select(m => m.FilePath).FirstOrDefault() ?? 
+                    FeaturedImageUrl = p.Media.Where(m => m.IsFeatured).Select(m => m.FilePath).FirstOrDefault() ??
                                        p.Media.OrderBy(m => m.DisplayOrder).Select(m => m.FilePath).FirstOrDefault()
                 })
                 .ToListAsync(cancellationToken);
@@ -287,7 +287,7 @@ namespace RealEstate.Application.Properties.Queries
                 .Include(p => p.FloorPlans)
                 .Include(p => p.AuditLogs)
                     .ThenInclude(l => l.User)
-                .FirstOrDefaultAsync(x => (request.Id.HasValue && x.Id == request.Id.Value) || 
+                .FirstOrDefaultAsync(x => (request.Id.HasValue && x.Id == request.Id.Value) ||
                                           (!request.Id.HasValue && x.Slug == request.Slug), cancellationToken);
 
             if (p == null)
@@ -354,11 +354,11 @@ namespace RealEstate.Application.Properties.Queries
                 MetaTitle = p.MetaTitle,
                 MetaDescription = p.MetaDescription,
                 MetaKeywords = p.MetaKeywords,
-                FeaturedImageUrl = p.Media.Where(m => m.IsFeatured).Select(m => m.FilePath).FirstOrDefault() ?? 
+                FeaturedImageUrl = p.Media.Where(m => m.IsFeatured).Select(m => m.FilePath).FirstOrDefault() ??
                                    p.Media.OrderBy(m => m.DisplayOrder).Select(m => m.FilePath).FirstOrDefault(),
 
                 AmenityIds = p.Amenities.Select(a => a.Id).ToList(),
-                
+
                 Media = p.Media.OrderBy(m => m.DisplayOrder).Select(m => new PropertyMediaDto
                 {
                     Id = m.Id,

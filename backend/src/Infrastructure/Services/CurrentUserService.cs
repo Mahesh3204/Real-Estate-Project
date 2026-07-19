@@ -20,7 +20,7 @@ namespace RealEstate.Infrastructure.Services
             {
                 var id = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
                     ?? _httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value;
-                
+
                 return Guid.TryParse(id, out var parsedGuid) ? parsedGuid : null;
             }
         }

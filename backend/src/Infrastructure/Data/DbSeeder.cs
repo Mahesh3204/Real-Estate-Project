@@ -132,6 +132,40 @@ namespace RealEstate.Infrastructure.Data
                 }
             }
 
+            // Ensure maheshnanera3204@gmail.com has Admin role
+            var maheshUser = await userManager.FindByEmailAsync("maheshnanera3204@gmail.com");
+            if (maheshUser != null)
+            {
+                if (!await userManager.IsInRoleAsync(maheshUser, "Admin"))
+                {
+                    await userManager.AddToRoleAsync(maheshUser, "Admin");
+                }
+                
+                maheshUser.Role = "Admin";
+                var adminRoleObj = await roleManager.FindByNameAsync("Admin");
+                if (adminRoleObj != null && !maheshUser.ActiveRoleId.HasValue)
+                {
+                    maheshUser.ActiveRoleId = adminRoleObj.Id;
+                }
+                await userManager.UpdateAsync(maheshUser);
+
+                // Also make sure their profile is seeded/updated if needed
+                var profileExists = await context.Profiles.AnyAsync(p => p.Id == maheshUser.Id);
+                if (!profileExists)
+                {
+                    var maheshProfile = new Profile
+                    {
+                        Id = maheshUser.Id,
+                        FirstName = maheshUser.FirstName,
+                        LastName = maheshUser.LastName,
+                        Language = "en",
+                        Timezone = "UTC"
+                    };
+                    context.Profiles.Add(maheshProfile);
+                    await context.SaveChangesAsync();
+                }
+            }
+
             // 5. Seed Geographical Locations
             if (!await context.Countries.AnyAsync())
             {

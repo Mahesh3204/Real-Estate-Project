@@ -920,6 +920,81 @@ namespace RealEstate.API.Migrations
                     b.ToTable("role_permissions", (string)null);
                 });
 
+            modelBuilder.Entity("RealEstate.Domain.Entities.RoleRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("RequestedRoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedRoleId");
+
+                    b.HasIndex("ReviewedBy");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("role_requests", (string)null);
+                });
+
+            modelBuilder.Entity("RealEstate.Domain.Entities.RoleRequestHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ChangedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("NewStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("OldStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedBy");
+
+                    b.HasIndex("RequestId");
+
+                    b.ToTable("role_request_histories", (string)null);
+                });
+
             modelBuilder.Entity("RealEstate.Domain.Entities.State", b =>
                 {
                     b.Property<Guid>("Id")
@@ -946,6 +1021,22 @@ namespace RealEstate.API.Migrations
                     b.ToTable("states", (string)null);
                 });
 
+            modelBuilder.Entity("RealEstate.Domain.Entities.SystemSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("system_settings", (string)null);
+                });
+
             modelBuilder.Entity("RealEstate.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -954,6 +1045,9 @@ namespace RealEstate.API.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<Guid?>("ActiveRoleId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -1024,6 +1118,8 @@ namespace RealEstate.API.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveRoleId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1330,6 +1426,51 @@ namespace RealEstate.API.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("RealEstate.Domain.Entities.RoleRequest", b =>
+                {
+                    b.HasOne("RealEstate.Domain.Entities.Role", "RequestedRole")
+                        .WithMany()
+                        .HasForeignKey("RequestedRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RealEstate.Domain.Entities.User", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RealEstate.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RequestedRole");
+
+                    b.Navigation("Reviewer");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RealEstate.Domain.Entities.RoleRequestHistory", b =>
+                {
+                    b.HasOne("RealEstate.Domain.Entities.User", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RealEstate.Domain.Entities.RoleRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByUser");
+
+                    b.Navigation("Request");
+                });
+
             modelBuilder.Entity("RealEstate.Domain.Entities.State", b =>
                 {
                     b.HasOne("RealEstate.Domain.Entities.Country", "Country")
@@ -1339,6 +1480,16 @@ namespace RealEstate.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("RealEstate.Domain.Entities.User", b =>
+                {
+                    b.HasOne("RealEstate.Domain.Entities.Role", "ActiveRole")
+                        .WithMany()
+                        .HasForeignKey("ActiveRoleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ActiveRole");
                 });
 
             modelBuilder.Entity("RealEstate.Domain.Entities.City", b =>

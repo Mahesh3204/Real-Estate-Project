@@ -74,7 +74,7 @@ namespace RealEstate.Application.Properties.Commands
             slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
             slug = Regex.Replace(slug, @"\s+", " ").Trim();
             slug = Regex.Replace(slug, @"\s", "-");
-            
+
             // Append random suffix to ensure uniqueness
             string suffix = Guid.NewGuid().ToString("N").Substring(0, 5);
             return $"{slug}-{suffix}";

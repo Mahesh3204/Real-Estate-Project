@@ -29,15 +29,18 @@ namespace RealEstate.Application.Users.Commands.GoogleLogin
     public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, LoginResult>
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IJwtTokenGenerator _tokenGenerator;
         private readonly IGoogleTokenVerifier _googleTokenVerifier;
 
         public GoogleLoginCommandHandler(
             UserManager<User> userManager,
+            RoleManager<Role> roleManager,
             IJwtTokenGenerator tokenGenerator,
             IGoogleTokenVerifier googleTokenVerifier)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _tokenGenerator = tokenGenerator;
             _googleTokenVerifier = googleTokenVerifier;
         }
@@ -61,7 +64,7 @@ namespace RealEstate.Application.Users.Commands.GoogleLogin
                     Email = googlePayload.Email,
                     FirstName = googlePayload.FirstName,
                     LastName = googlePayload.LastName,
-                    Role = request.Role,
+                    Role = "Buyer", // Force default role Buyer per spec
                     IsVerified = true, // Google accounts verified by default
                     ProfilePictureUrl = googlePayload.PictureUrl
                 };
@@ -73,6 +76,17 @@ namespace RealEstate.Application.Users.Commands.GoogleLogin
                     var errors = string.Join(", ", System.Linq.Enumerable.Select(result.Errors, e => e.Description));
                     throw new Exception($"Failed to provision Google account: {errors}");
                 }
+
+                // Add to standard role "Buyer"
+                await _userManager.AddToRoleAsync(user, "Buyer");
+
+                // Set ActiveRoleId
+                var buyerRole = await _roleManager.FindByNameAsync("Buyer");
+                if (buyerRole != null)
+                {
+                    user.ActiveRoleId = buyerRole.Id;
+                    await _userManager.UpdateAsync(user);
+                }
             }
 
             var token = _tokenGenerator.GenerateToken(user);
@@ -80,6 +94,18 @@ namespace RealEstate.Application.Users.Commands.GoogleLogin
             // Update last login
             user.LastLogin = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
+
+            var assignedRoles = (await _userManager.GetRolesAsync(user)).ToList();
+            var activeRole = string.Empty;
+            if (user.ActiveRoleId.HasValue)
+            {
+                var roleObj = await _roleManager.FindByIdAsync(user.ActiveRoleId.Value.ToString());
+                activeRole = roleObj?.Name ?? string.Empty;
+            }
+            if (string.IsNullOrEmpty(activeRole) && assignedRoles.Count > 0)
+            {
+                activeRole = assignedRoles[0]; // fallback
+            }
 
             return new LoginResult
             {
@@ -90,6 +116,8 @@ namespace RealEstate.Application.Users.Commands.GoogleLogin
                     Id = user.Id,
                     Email = user.Email ?? string.Empty,
                     Role = user.Role,
+                    AssignedRoles = assignedRoles,
+                    ActiveRole = activeRole,
                     IsVerified = user.IsVerified
                 }
             };

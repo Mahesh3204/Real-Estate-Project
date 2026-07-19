@@ -31,8 +31,11 @@ namespace RealEstate.Application.UnitTests.Users.Commands
             var currentUserService = Substitute.For<RealEstate.Application.Common.Interfaces.ICurrentUserService>();
             _context = new ApplicationDbContext(options, currentUserService);
 
+            var roleStore = Substitute.For<IRoleStore<Role>>();
+            var roleManager = Substitute.For<RoleManager<Role>>(roleStore, null, null, null, null);
+
             _updateHandler = new UpdateUserProfileCommandHandler(_userManager, _context);
-            _getQueryHandler = new GetUserProfileQueryHandler(_userManager, _context);
+            _getQueryHandler = new GetUserProfileQueryHandler(_userManager, roleManager, _context);
         }
 
         [Fact]

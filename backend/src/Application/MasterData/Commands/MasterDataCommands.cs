@@ -117,7 +117,7 @@ namespace RealEstate.Application.MasterData.Commands
         {
             RuleFor(x => x.CategoryId).NotEmpty();
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                     !await context.PropertyTypes.AnyAsync(t => t.CategoryId == command.CategoryId && t.Name == name, cancel))
                 .WithMessage("Property Type name must be unique within its Category.");
         }

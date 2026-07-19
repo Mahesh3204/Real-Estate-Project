@@ -27,11 +27,11 @@ namespace RealEstate.API.Controllers
                 return BadRequest("Rejection reason comments are required.");
             }
 
-            var command = new AdminRejectPropertyCommand 
-            { 
-                Id = id, 
-                AdminUserId = CurrentUserId, 
-                Reason = request.Reason 
+            var command = new AdminRejectPropertyCommand
+            {
+                Id = id,
+                AdminUserId = CurrentUserId,
+                Reason = request.Reason
             };
             var success = await Mediator.Send(command);
             return Ok(new { Success = success, Message = "Listing rejected. Owner has been notified." });

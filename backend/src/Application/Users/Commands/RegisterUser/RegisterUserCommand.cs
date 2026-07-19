@@ -41,11 +41,16 @@ namespace RealEstate.Application.Users.Commands.RegisterUser
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Guid>
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IEmailSender _emailSender;
 
-        public RegisterUserCommandHandler(UserManager<User> userManager, IEmailSender emailSender)
+        public RegisterUserCommandHandler(
+            UserManager<User> userManager,
+            RoleManager<Role> roleManager,
+            IEmailSender emailSender)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _emailSender = emailSender;
         }
 
@@ -67,7 +72,7 @@ namespace RealEstate.Application.Users.Commands.RegisterUser
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 PhoneNumber = request.PhoneNumber,
-                Role = request.Role,
+                Role = "Buyer", // Force Role string to Buyer
                 IsVerified = false // Must verify email OTP
             };
 
@@ -78,6 +83,17 @@ namespace RealEstate.Application.Users.Commands.RegisterUser
             {
                 var errors = string.Join(", ", System.Linq.Enumerable.Select(result.Errors, e => e.Description));
                 throw new Exception($"Registration failed: {errors}");
+            }
+
+            // Assign standard "Buyer" role in IdentityUserRole many-to-many relationship
+            await _userManager.AddToRoleAsync(user, "Buyer");
+
+            // Set ActiveRoleId to the "Buyer" role's ID
+            var buyerRole = await _roleManager.FindByNameAsync("Buyer");
+            if (buyerRole != null)
+            {
+                user.ActiveRoleId = buyerRole.Id;
+                await _userManager.UpdateAsync(user);
             }
 
             // Generate OTP

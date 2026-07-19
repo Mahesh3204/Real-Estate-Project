@@ -52,12 +52,12 @@ namespace RealEstate.Infrastructure.Mail
                 using var smtp = new SmtpClient();
 
                 // Select standard socket options based on commonly used SMTP ports
-                var secureSocketOption = port == 465 
-                    ? SecureSocketOptions.SslOnConnect 
+                var secureSocketOption = port == 465
+                    ? SecureSocketOptions.SslOnConnect
                     : (port == 587 ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto);
 
                 await smtp.ConnectAsync(smtpServer, port, secureSocketOption);
-                
+
                 if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
                 {
                     await smtp.AuthenticateAsync(username, password);

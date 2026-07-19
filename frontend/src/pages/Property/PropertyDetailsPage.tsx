@@ -18,6 +18,7 @@ const PropertyDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const currentRole = user?.activeRole || user?.role;
 
   // States
   const [property, setProperty] = useState<PropertyDetailsDto | null>(null);
@@ -116,7 +117,7 @@ const PropertyDetailsPage: React.FC = () => {
     );
   }
 
-  const isOwnerOrAdmin = user && (user.role === 'Admin' || user.id === property.ownerId);
+  const isOwnerOrAdmin = user && (currentRole === 'Admin' || user.id === property.ownerId);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">

@@ -103,7 +103,7 @@ namespace RealEstate.Application.MasterData.Queries
 
         public async Task<List<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.PropertyCategories.IgnoreQueryFilters().AsNoTracking()
                 : _context.PropertyCategories.AsNoTracking();
 
@@ -193,7 +193,7 @@ namespace RealEstate.Application.MasterData.Queries
 
         public async Task<List<AmenityDto>> Handle(GetAmenitiesQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.Amenities.IgnoreQueryFilters().AsNoTracking()
                 : _context.Amenities.AsNoTracking();
 

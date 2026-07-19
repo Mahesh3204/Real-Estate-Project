@@ -14,6 +14,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
     public class GoogleLoginTests
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IJwtTokenGenerator _tokenGenerator;
         private readonly IGoogleTokenVerifier _googleTokenVerifier;
         private readonly GoogleLoginCommandHandler _handler;
@@ -22,9 +23,13 @@ namespace RealEstate.Application.UnitTests.Users.Commands
         {
             var store = Substitute.For<IUserStore<User>>();
             _userManager = Substitute.For<UserManager<User>>(store, null, null, null, null, null, null, null, null);
+
+            var roleStore = Substitute.For<IRoleStore<Role>>();
+            _roleManager = Substitute.For<RoleManager<Role>>(roleStore, null, null, null, null);
+
             _tokenGenerator = Substitute.For<IJwtTokenGenerator>();
             _googleTokenVerifier = Substitute.For<IGoogleTokenVerifier>();
-            _handler = new GoogleLoginCommandHandler(_userManager, _tokenGenerator, _googleTokenVerifier);
+            _handler = new GoogleLoginCommandHandler(_userManager, _roleManager, _tokenGenerator, _googleTokenVerifier);
         }
 
         [Fact]
@@ -51,6 +56,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
             _googleTokenVerifier.VerifyTokenAsync(command.IdToken).Returns(googlePayload);
             _userManager.FindByEmailAsync(googlePayload.Email).Returns(user);
             _tokenGenerator.GenerateToken(user).Returns("mocked-jwt");
+            _userManager.GetRolesAsync(user).Returns(new System.Collections.Generic.List<string> { "Buyer" });
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -73,10 +79,16 @@ namespace RealEstate.Application.UnitTests.Users.Commands
                 LastName = "GoogleUser"
             };
 
+            var buyerRole = new Role("Buyer");
+
             _googleTokenVerifier.VerifyTokenAsync(command.IdToken).Returns(googlePayload);
             _userManager.FindByEmailAsync(googlePayload.Email).Returns((User?)null);
             _userManager.CreateAsync(Arg.Any<User>()).Returns(IdentityResult.Success);
+            _userManager.AddToRoleAsync(Arg.Any<User>(), "Buyer").Returns(IdentityResult.Success);
+            _roleManager.FindByNameAsync("Buyer").Returns(buyerRole);
+            _userManager.UpdateAsync(Arg.Any<User>()).Returns(IdentityResult.Success);
             _tokenGenerator.GenerateToken(Arg.Any<User>()).Returns("mocked-jwt-new");
+            _userManager.GetRolesAsync(Arg.Any<User>()).Returns(new System.Collections.Generic.List<string> { "Buyer" });
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -88,8 +100,11 @@ namespace RealEstate.Application.UnitTests.Users.Commands
                 u.Email == googlePayload.Email &&
                 u.FirstName == googlePayload.FirstName &&
                 u.LastName == googlePayload.LastName &&
-                u.Role == command.Role
+                u.Role == "Buyer"
             ));
+
+            await _userManager.Received(1).AddToRoleAsync(Arg.Any<User>(), "Buyer");
+            await _userManager.Received(2).UpdateAsync(Arg.Is<User>(u => u.ActiveRoleId == buyerRole.Id));
         }
 
         [Fact]

@@ -42,8 +42,8 @@ namespace RealEstate.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<PropertyDetailsDto>> GetPropertyById(Guid id)
         {
-            var query = new GetPropertyDetailsQuery 
-            { 
+            var query = new GetPropertyDetailsQuery
+            {
                 Id = id,
                 RequesterUserId = CurrentUserIdOptional,
                 RequesterRole = CurrentUserRole
@@ -56,8 +56,8 @@ namespace RealEstate.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<PropertyDetailsDto>> GetPropertyBySlug(string slug)
         {
-            var query = new GetPropertyDetailsQuery 
-            { 
+            var query = new GetPropertyDetailsQuery
+            {
                 Slug = slug,
                 RequesterUserId = CurrentUserIdOptional,
                 RequesterRole = CurrentUserRole
@@ -89,11 +89,11 @@ namespace RealEstate.API.Controllers
         [HttpPost("{id}/submit")]
         public async Task<IActionResult> SubmitForApproval(Guid id)
         {
-            var command = new SubmitPropertyForApprovalCommand 
-            { 
-                Id = id, 
-                RequesterUserId = CurrentUserId, 
-                RequesterRole = CurrentUserRole ?? string.Empty 
+            var command = new SubmitPropertyForApprovalCommand
+            {
+                Id = id,
+                RequesterUserId = CurrentUserId,
+                RequesterRole = CurrentUserRole ?? string.Empty
             };
             var success = await Mediator.Send(command);
             return Ok(new { Success = success, Message = "Property submitted for moderation review." });
@@ -147,9 +147,9 @@ namespace RealEstate.API.Controllers
         [HttpDelete("{id}/media/{mediaId}")]
         public async Task<IActionResult> DeleteMedia(Guid id, Guid mediaId)
         {
-            var command = new DeletePropertyMediaCommand 
-            { 
-                PropertyId = id, 
+            var command = new DeletePropertyMediaCommand
+            {
+                PropertyId = id,
                 MediaId = mediaId,
                 RequesterUserId = CurrentUserId,
                 RequesterRole = CurrentUserRole ?? string.Empty
@@ -208,9 +208,9 @@ namespace RealEstate.API.Controllers
         [HttpDelete("{id}/documents/{docId}")]
         public async Task<IActionResult> DeleteDocument(Guid id, Guid docId)
         {
-            var command = new DeletePropertyDocumentCommand 
-            { 
-                PropertyId = id, 
+            var command = new DeletePropertyDocumentCommand
+            {
+                PropertyId = id,
                 DocumentId = docId,
                 RequesterUserId = CurrentUserId,
                 RequesterRole = CurrentUserRole ?? string.Empty
@@ -283,9 +283,9 @@ namespace RealEstate.API.Controllers
         [HttpDelete("{id}/floor-plans/{planId}")]
         public async Task<IActionResult> DeleteFloorPlan(Guid id, Guid planId)
         {
-            var command = new DeletePropertyFloorPlanCommand 
-            { 
-                PropertyId = id, 
+            var command = new DeletePropertyFloorPlanCommand
+            {
+                PropertyId = id,
                 FloorPlanId = planId,
                 RequesterUserId = CurrentUserId,
                 RequesterRole = CurrentUserRole ?? string.Empty
@@ -388,7 +388,7 @@ namespace RealEstate.API.Controllers
             }
 
             _context.Properties.Add(duplicate);
-            
+
             // Log in audit trail
             var log = new PropertyAuditLog
             {

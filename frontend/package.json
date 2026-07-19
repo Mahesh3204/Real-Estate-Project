@@ -25,6 +25,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@oxlint/binding-win32-x64-msvc": "^1.74.0",
     "@rolldown/binding-win32-x64-msvc": "^1.2.0",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",

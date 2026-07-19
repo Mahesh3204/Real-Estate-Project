@@ -20,7 +20,7 @@ namespace RealEstate.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid CountryId { get; set; }
         public Country Country { get; set; } = null!;
-        
+
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
@@ -33,7 +33,7 @@ namespace RealEstate.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid StateId { get; set; }
         public State State { get; set; } = null!;
-        
+
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
@@ -46,7 +46,7 @@ namespace RealEstate.Domain.Entities
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid CityId { get; set; }
         public City City { get; set; } = null!;
-        
+
         public string Name { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;

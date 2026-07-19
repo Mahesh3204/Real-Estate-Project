@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { logout } from '../../store/authSlice';
+import { logout, updateUser } from '../../store/authSlice';
 import { 
   FiGrid, 
   FiUser, 
@@ -14,9 +14,12 @@ import {
   FiActivity, 
   FiLogOut,
   FiChevronDown,
-  FiSliders
+  FiSliders,
+  FiUsers,
+  FiList
 } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
+import { roleApi } from '../../services/roleApi';
 
 const AppLayout: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -52,6 +55,9 @@ const AppLayout: React.FC = () => {
     if (path === '/admin/permissions') return 'System Access Keys';
     if (path === '/admin/locations') return 'Locations Management';
     if (path === '/admin/master-data') return 'Property Options Master Data';
+    if (path === '/admin/users') return 'User Management Console';
+    if (path === '/admin/role-requests') return 'Role Upgrade Requests Moderation';
+    if (path === '/admin/settings') return 'Platform System Settings';
     if (path === '/properties') return 'Properties Workspace';
     if (path === '/properties/wizard') return 'Property Wizard';
     if (path.startsWith('/properties/view')) return 'Property Details';
@@ -103,11 +109,27 @@ const AppLayout: React.FC = () => {
           </NavLink>
 
 
-          {/* Admin console section - only visible to admins */}
-          {user?.role === 'Admin' && (
+          {/* Admin console section - only visible when active role is Admin */}
+          {(user?.activeRole === 'Admin' || (!user?.activeRole && user?.role === 'Admin')) && (
             <>
               <div className="app-sidebar-section-title">Admin Console</div>
               
+              <NavLink 
+                to="/admin/users" 
+                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                <FiUsers className="app-sidebar-link-icon" />
+                <span>Users Management</span>
+              </NavLink>
+
+              <NavLink 
+                to="/admin/role-requests" 
+                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                <FiList className="app-sidebar-link-icon" />
+                <span>Role Requests</span>
+              </NavLink>
+
               <NavLink 
                 to="/admin/roles" 
                 className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
@@ -154,6 +176,14 @@ const AppLayout: React.FC = () => {
               >
                 <FiActivity className="app-sidebar-link-icon" />
                 <span>Audit Logs</span>
+              </NavLink>
+
+              <NavLink 
+                to="/admin/settings" 
+                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                <FiSettings className="app-sidebar-link-icon" />
+                <span>Platform Settings</span>
               </NavLink>
             </>
           )}
@@ -213,6 +243,54 @@ const AppLayout: React.FC = () => {
                   <FiBookmark />
                   <span>Saved Bookmarks</span>
                 </NavLink>
+
+                {user?.assignedRoles && user.assignedRoles.length > 1 && (
+                  <>
+                    <div className="dropdown-menu-divider" />
+                    <div className="dropdown-section-title" style={{ padding: '6px 12px 2px 12px', fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Workspace</div>
+                    {user.assignedRoles.map((roleName) => (
+                      <button
+                        key={roleName}
+                        type="button"
+                        className={`dropdown-menu-link ${user.activeRole === roleName ? 'active' : ''}`}
+                        onClick={async () => {
+                          if (user.activeRole !== roleName) {
+                            try {
+                              const res = await roleApi.switchActiveRole(roleName);
+                              if (res.data?.token) {
+                                localStorage.setItem('accessToken', res.data.token);
+                              }
+                              dispatch(updateUser({ activeRole: roleName }));
+                              if (roleName === 'Admin') {
+                                navigate('/admin/properties');
+                              } else if (roleName === 'Seller' || roleName === 'Agent') {
+                                navigate('/properties');
+                              } else {
+                                navigate('/dashboard');
+                              }
+                            } catch (err) {
+                              console.error("Failed to switch active role", err);
+                            }
+                          }
+                          setDropdownOpen(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          fontWeight: user.activeRole === roleName ? 'bold' : 'normal',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FiShield style={{ color: user.activeRole === roleName ? 'var(--primary)' : 'var(--text-secondary)' }} />
+                          <span>{roleName} Portal</span>
+                        </div>
+                        {user.activeRole === roleName && <span style={{ color: 'var(--success)', fontSize: '12px' }}>●</span>}
+                      </button>
+                    ))}
+                  </>
+                )}
 
                 <div className="dropdown-menu-divider" />
 

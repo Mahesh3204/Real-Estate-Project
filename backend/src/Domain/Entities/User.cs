@@ -17,5 +17,8 @@ namespace RealEstate.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLogin { get; set; }
         public string? ProfilePictureUrl { get; set; }
+
+        public Guid? ActiveRoleId { get; set; }
+        public Role? ActiveRole { get; set; }
     }
 }

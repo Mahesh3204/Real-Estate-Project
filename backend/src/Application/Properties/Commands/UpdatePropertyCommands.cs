@@ -141,7 +141,7 @@ namespace RealEstate.Application.Properties.Commands
     }
 
     // Handlers
-    public class UpdatePropertyHandlers : 
+    public class UpdatePropertyHandlers :
         IRequestHandler<UpdatePropertyDraftCommand, bool>,
         IRequestHandler<SubmitPropertyForApprovalCommand, bool>,
         IRequestHandler<BulkPropertyActionCommand, bool>,

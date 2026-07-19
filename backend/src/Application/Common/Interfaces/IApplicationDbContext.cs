@@ -34,6 +34,10 @@ namespace RealEstate.Application.Common.Interfaces
         DbSet<PropertyFloorPlan> PropertyFloorPlans { get; }
         DbSet<PropertyAuditLog> PropertyAuditLogs { get; }
 
+        DbSet<RoleRequest> RoleRequests { get; }
+        DbSet<RoleRequestHistory> RoleRequestHistories { get; }
+        DbSet<SystemSetting> SystemSettings { get; }
+
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

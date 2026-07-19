@@ -14,6 +14,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
     public class LoginUserTests
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IJwtTokenGenerator _tokenGenerator;
         private readonly LoginUserCommandHandler _handler;
 
@@ -21,8 +22,10 @@ namespace RealEstate.Application.UnitTests.Users.Commands
         {
             var store = Substitute.For<IUserStore<User>>();
             _userManager = Substitute.For<UserManager<User>>(store, null, null, null, null, null, null, null, null);
+            var roleStore = Substitute.For<IRoleStore<Role>>();
+            _roleManager = Substitute.For<RoleManager<Role>>(roleStore, null, null, null, null);
             _tokenGenerator = Substitute.For<IJwtTokenGenerator>();
-            _handler = new LoginUserCommandHandler(_userManager, _tokenGenerator);
+            _handler = new LoginUserCommandHandler(_userManager, _roleManager, _tokenGenerator);
         }
 
         [Fact]

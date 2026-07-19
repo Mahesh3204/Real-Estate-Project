@@ -67,25 +67,38 @@ namespace RealEstate.API.Middleware
                 return;
             }
 
-            // Extract the user's role from claims
-            var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value 
-                ?? user.FindFirst("role")?.Value;
+            // Extract all roles user possesses
+            var roles = user.FindAll(ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Concat(user.FindAll("role").Select(c => c.Value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            if (string.IsNullOrEmpty(roleClaim))
-            {
-                return;
-            }
+            // Extract ActiveRole
+            var activeRole = user.FindFirst("ActiveRole")?.Value
+                ?? user.FindFirst("activeRole")?.Value;
 
             // Admin bypasses all checks
-            if (roleClaim.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) || 
+                (activeRole != null && activeRole.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
             {
                 context.Succeed(requirement);
                 return;
             }
 
-            // Check database to see if this role has the requested permission
+            // Check active role if present, else fall back to all user roles
+            var rolesToCheck = !string.IsNullOrEmpty(activeRole)
+                ? new System.Collections.Generic.List<string> { activeRole }
+                : roles;
+
+            if (rolesToCheck.Count == 0)
+            {
+                return;
+            }
+
+            // Check database to see if any of target roles has the requested permission
             var hasPermission = await _context.RolePermissions
-                .AnyAsync(rp => rp.Role.Name == roleClaim && rp.Permission.Name == requirement.Permission);
+                .AnyAsync(rp => rolesToCheck.Contains(rp.Role.Name) && rp.Permission.Name == requirement.Permission);
 
             if (hasPermission)
             {

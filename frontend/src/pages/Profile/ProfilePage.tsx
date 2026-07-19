@@ -4,7 +4,9 @@ import apiClient from '../../services/apiClient';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout, updateUser } from '../../store/authSlice';
 import { showToast } from '../../store/toastSlice';
-
+import { roleApi } from '../../services/roleApi';
+import type { RoleRequestDto } from '../../services/roleApi';
+import { createPortal } from 'react-dom';
 
 
 
@@ -29,6 +31,8 @@ interface ProfileData {
   zipCode: string | null;
   language: string;
   timezone: string;
+  assignedRoles?: string[];
+  activeRole?: string;
 }
 
 interface Country { id: string; name: string; }
@@ -65,12 +69,64 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const [roleRequests, setRoleRequests] = useState<RoleRequestDto[]>([]);
+  const [requestReason, setRequestReason] = useState('');
+  const [requestRole, setRequestRole] = useState<'Seller' | 'Agent' | ''>('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+
   useEffect(() => {
     if (user) {
       loadProfile();
       loadCountries();
+      loadUserRequests();
     }
-  }, [user]);
+  }, [user?.id]);
+
+  const loadUserRequests = async () => {
+    try {
+      const res = await roleApi.getRoleRequests({ pageNumber: 1, pageSize: 10 });
+      setRoleRequests(res.data?.items || []);
+    } catch (err) {
+      console.error("Failed to load user role requests", err);
+    }
+  };
+
+  const handleRoleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!requestRole || !requestReason.trim()) return;
+
+    setError('');
+    setSuccess('');
+    setSubmittingRequest(true);
+
+    try {
+      const res = await roleApi.createRequest(requestRole, requestReason);
+      dispatch(showToast({ message: res.message || 'Request submitted successfully!', type: 'success' }));
+      setRequestReason('');
+      setRequestRole('');
+      loadUserRequests();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to submit upgrade request.';
+      setError(msg);
+      dispatch(showToast({ message: msg, type: 'error' }));
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
+  const handleCancelRequest = async (id: string) => {
+    setError('');
+    setSuccess('');
+    try {
+      const res = await roleApi.cancelRequest(id);
+      dispatch(showToast({ message: res.message || 'Request cancelled successfully.', type: 'success' }));
+      loadUserRequests();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to cancel request.';
+      setError(msg);
+      dispatch(showToast({ message: msg, type: 'error' }));
+    }
+  };
 
   useEffect(() => {
     if (countryId) {
@@ -96,6 +152,19 @@ const ProfilePage: React.FC = () => {
       const res = await apiClient.get('/api/user/profile');
       const data: ProfileData = res.data;
       setProfile(data);
+      if (
+        user && (
+          data.role !== user.role ||
+          data.activeRole !== user.activeRole ||
+          JSON.stringify(data.assignedRoles) !== JSON.stringify(user.assignedRoles)
+        )
+      ) {
+        dispatch(updateUser({ 
+          role: data.role, 
+          assignedRoles: data.assignedRoles, 
+          activeRole: data.activeRole 
+        }));
+      }
       setFirstName(data.firstName);
       setLastName(data.lastName);
       setPhone(data.phone || '');
@@ -375,6 +444,138 @@ const ProfilePage: React.FC = () => {
           <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => setIsEditing(true)}>
             Edit Profile Details
           </button>
+
+          <div style={{ margin: '30px 0', borderTop: '1px solid var(--border)' }} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <h3 style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0 }}>Portal Workspace Upgrades</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+              Your current unlocked portal workspaces: <strong>{(user?.assignedRoles || [user?.role || 'Buyer']).join(', ')}</strong>
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+              {!(user?.assignedRoles || [user?.role || 'Buyer']).includes('Seller') && (
+                <button 
+                  type="button" 
+                  className="btn-primary" 
+                  style={{ width: 'auto', padding: '10px 15px', fontSize: '13px' }}
+                  onClick={() => { setRequestRole('Seller'); setRequestReason(''); }}
+                >
+                  Become a Seller
+                </button>
+              )}
+              {!(user?.assignedRoles || [user?.role || 'Buyer']).includes('Agent') && (
+                <button 
+                  type="button" 
+                  className="btn-primary" 
+                  style={{ width: 'auto', padding: '10px 15px', fontSize: '13px' }}
+                  onClick={() => { setRequestRole('Agent'); setRequestReason(''); }}
+                >
+                  Become an Agent
+                </button>
+              )}
+            </div>
+
+            {requestRole && createPortal(
+              <div 
+                onClick={() => { setRequestRole(''); setRequestReason(''); }}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0,0,0,0.6)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 1000,
+                  backdropFilter: 'blur(4px)'
+                }}
+              >
+                <form 
+                  onSubmit={handleRoleRequestSubmit} 
+                  onClick={(e) => e.stopPropagation()}
+                  className="glass-card animate-fade-in" 
+                  style={{ padding: '25px', width: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}
+                >
+                  <h3 style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0 }}>Apply for {requestRole} Portal Access</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>
+                    Please explain why you need to unlock the {requestRole} portal access.
+                  </p>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" style={{ fontSize: '12px' }}>Reason for Upgrade Request</label>
+                    <textarea 
+                      className="form-input" 
+                      placeholder={`Provide a reason for wanting access to the ${requestRole} portal...`}
+                      value={requestReason} 
+                      onChange={(e) => setRequestReason(e.target.value)}
+                      rows={4} 
+                      required 
+                      style={{ width: '100%', resize: 'none', marginBottom: 0 }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '10px', justifyContent: 'flex-end' }}>
+                    <button 
+                      type="button" 
+                      className="btn-primary" 
+                      style={{ width: 'auto', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                      onClick={() => { setRequestRole(''); setRequestReason(''); }}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn-primary" style={{ width: 'auto' }} disabled={submittingRequest}>
+                      {submittingRequest ? 'Submitting...' : 'Submit Request'}
+                    </button>
+                  </div>
+                </form>
+              </div>,
+              document.body
+            )}
+
+            {roleRequests.length > 0 && (
+              <div style={{ marginTop: '15px' }}>
+                <h4 style={{ fontSize: '14px', margin: '0 0 10px 0', color: 'var(--text-secondary)' }}>Upgrade Requests History</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {roleRequests.map((req) => (
+                    <div key={req.id} style={{ padding: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: '15px', wordBreak: 'break-word' }}>
+                        <div style={{ fontWeight: '600', fontSize: '14px' }}>Upgrade to {req.requestedRole}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Reason: {req.reason}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>Submitted: {new Date(req.submittedAt).toLocaleDateString()}</div>
+                        {req.reviewNotes && (
+                          <div style={{ fontSize: '11px', color: 'var(--accent)', marginTop: '4px', fontStyle: 'italic' }}>
+                            Feedback: {req.reviewNotes}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          backgroundColor: req.status === 'Pending' ? 'rgba(234,179,8,0.1)' : req.status === 'Approved' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                          color: req.status === 'Pending' ? 'rgb(234,179,8)' : req.status === 'Approved' ? 'rgb(34,197,94)' : 'rgb(239,68,68)'
+                        }}>
+                          {req.status}
+                        </span>
+                        {req.status === 'Pending' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelRequest(req.id)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--error)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', padding: 0 }}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>

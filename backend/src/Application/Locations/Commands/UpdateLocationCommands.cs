@@ -44,7 +44,7 @@ namespace RealEstate.Application.Locations.Commands
         public UpdateCountryCommandValidator(IApplicationDbContext context)
         {
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                 {
                     var existing = await context.Countries.FirstOrDefaultAsync(c => c.Name == name, cancel);
                     return existing == null || existing.Id == command.Id;
@@ -52,7 +52,7 @@ namespace RealEstate.Application.Locations.Commands
                 .WithMessage("Country name must be unique.");
 
             RuleFor(x => x.Code).NotEmpty().MaximumLength(10)
-                .MustAsync(async (command, code, cancel) => 
+                .MustAsync(async (command, code, cancel) =>
                 {
                     var existing = await context.Countries.FirstOrDefaultAsync(c => c.Code == code, cancel);
                     return existing == null || existing.Id == command.Id;
@@ -66,7 +66,7 @@ namespace RealEstate.Application.Locations.Commands
         public UpdateStateCommandValidator(IApplicationDbContext context)
         {
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                 {
                     var state = await context.States.FirstOrDefaultAsync(s => s.Id == command.Id, cancel);
                     if (state == null) return true;
@@ -82,7 +82,7 @@ namespace RealEstate.Application.Locations.Commands
         public UpdateCityCommandValidator(IApplicationDbContext context)
         {
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                 {
                     var city = await context.Cities.FirstOrDefaultAsync(c => c.Id == command.Id, cancel);
                     if (city == null) return true;
@@ -98,7 +98,7 @@ namespace RealEstate.Application.Locations.Commands
         public UpdateAreaCommandValidator(IApplicationDbContext context)
         {
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                 {
                     var area = await context.Areas.FirstOrDefaultAsync(a => a.Id == command.Id, cancel);
                     if (area == null) return true;

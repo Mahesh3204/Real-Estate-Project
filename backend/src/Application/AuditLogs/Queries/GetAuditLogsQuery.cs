@@ -49,7 +49,7 @@ namespace RealEstate.Application.AuditLogs.Queries
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 string search = request.SearchTerm.ToLowerInvariant();
-                query = query.Where(l => 
+                query = query.Where(l =>
                     (l.UserEmail != null && l.UserEmail.ToLower().Contains(search)) ||
                     l.Action.ToLower().Contains(search) ||
                     l.Resource.ToLower().Contains(search)

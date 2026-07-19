@@ -58,7 +58,7 @@ namespace RealEstate.Application.Locations.Commands
                 .WithMessage("Valid Country ID is required.");
 
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                     !await context.States.AnyAsync(s => s.CountryId == command.CountryId && s.Name == name, cancel))
                 .WithMessage("State name must be unique within the selected Country.");
         }
@@ -73,7 +73,7 @@ namespace RealEstate.Application.Locations.Commands
                 .WithMessage("Valid State ID is required.");
 
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                     !await context.Cities.AnyAsync(c => c.StateId == command.StateId && c.Name == name, cancel))
                 .WithMessage("City name must be unique within the selected State.");
         }
@@ -88,7 +88,7 @@ namespace RealEstate.Application.Locations.Commands
                 .WithMessage("Valid City ID is required.");
 
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100)
-                .MustAsync(async (command, name, cancel) => 
+                .MustAsync(async (command, name, cancel) =>
                     !await context.Areas.AnyAsync(a => a.CityId == command.CityId && a.Name == name, cancel))
                 .WithMessage("Area name must be unique within the selected City.");
         }

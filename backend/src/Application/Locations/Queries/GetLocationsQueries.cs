@@ -85,7 +85,7 @@ namespace RealEstate.Application.Locations.Queries
 
         public async Task<List<CountryDto>> Handle(GetCountriesQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.Countries.IgnoreQueryFilters().AsNoTracking()
                 : _context.Countries.AsNoTracking();
 
@@ -108,7 +108,7 @@ namespace RealEstate.Application.Locations.Queries
 
         public async Task<List<StateDto>> Handle(GetStatesQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.States.IgnoreQueryFilters().AsNoTracking()
                 : _context.States.AsNoTracking();
 
@@ -133,7 +133,7 @@ namespace RealEstate.Application.Locations.Queries
 
         public async Task<List<CityDto>> Handle(GetCitiesQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.Cities.IgnoreQueryFilters().AsNoTracking()
                 : _context.Cities.AsNoTracking();
 
@@ -158,7 +158,7 @@ namespace RealEstate.Application.Locations.Queries
 
         public async Task<List<AreaDto>> Handle(GetAreasQuery request, CancellationToken cancellationToken)
         {
-            var query = request.IncludeDeleted 
+            var query = request.IncludeDeleted
                 ? _context.Areas.IgnoreQueryFilters().AsNoTracking()
                 : _context.Areas.AsNoTracking();
 
