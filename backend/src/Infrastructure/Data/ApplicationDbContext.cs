@@ -45,6 +45,12 @@ namespace RealEstate.Infrastructure.Data
         public DbSet<RealEstate.Domain.Entities.File> Files { get; set; } = null!;
         public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
+        public DbSet<Property> Properties { get; set; } = null!;
+        public DbSet<PropertyMedia> PropertyMedias { get; set; } = null!;
+        public DbSet<PropertyDocument> PropertyDocuments { get; set; } = null!;
+        public DbSet<PropertyFloorPlan> PropertyFloorPlans { get; set; } = null!;
+        public DbSet<PropertyAuditLog> PropertyAuditLogs { get; set; } = null!;
+
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -315,6 +321,111 @@ namespace RealEstate.Infrastructure.Data
                 entity.HasOne(e => e.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Property
+            builder.Entity<Property>(entity =>
+            {
+                entity.ToTable("properties");
+                entity.HasKey(p => p.Id);
+                entity.HasIndex(p => p.Slug).IsUnique();
+                entity.HasQueryFilter(p => !p.IsDeleted);
+
+                entity.HasOne(p => p.Category)
+                    .WithMany()
+                    .HasForeignKey(p => p.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.PropertyType)
+                    .WithMany()
+                    .HasForeignKey(p => p.PropertyTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Status)
+                    .WithMany()
+                    .HasForeignKey(p => p.StatusId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Condition)
+                    .WithMany()
+                    .HasForeignKey(p => p.ConditionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Country)
+                    .WithMany()
+                    .HasForeignKey(p => p.CountryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.State)
+                    .WithMany()
+                    .HasForeignKey(p => p.StateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.City)
+                    .WithMany()
+                    .HasForeignKey(p => p.CityId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Owner)
+                    .WithMany()
+                    .HasForeignKey(p => p.OwnerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(p => p.Amenities)
+                    .WithMany();
+            });
+
+            // Configure PropertyMedia
+            builder.Entity<PropertyMedia>(entity =>
+            {
+                entity.ToTable("property_media");
+                entity.HasKey(m => m.Id);
+
+                entity.HasOne(m => m.Property)
+                    .WithMany(p => p.Media)
+                    .HasForeignKey(m => m.PropertyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure PropertyDocument
+            builder.Entity<PropertyDocument>(entity =>
+            {
+                entity.ToTable("property_documents");
+                entity.HasKey(d => d.Id);
+
+                entity.HasOne(d => d.Property)
+                    .WithMany(p => p.Documents)
+                    .HasForeignKey(d => d.PropertyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure PropertyFloorPlan
+            builder.Entity<PropertyFloorPlan>(entity =>
+            {
+                entity.ToTable("property_floor_plans");
+                entity.HasKey(f => f.Id);
+
+                entity.HasOne(f => f.Property)
+                    .WithMany(p => p.FloorPlans)
+                    .HasForeignKey(f => f.PropertyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure PropertyAuditLog
+            builder.Entity<PropertyAuditLog>(entity =>
+            {
+                entity.ToTable("property_audit_logs");
+                entity.HasKey(l => l.Id);
+
+                entity.HasOne(l => l.Property)
+                    .WithMany(p => p.AuditLogs)
+                    .HasForeignKey(l => l.PropertyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(l => l.User)
+                    .WithMany()
+                    .HasForeignKey(l => l.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }

@@ -28,6 +28,12 @@ namespace RealEstate.Application.Common.Interfaces
         DbSet<AuditLog> AuditLogs { get; }
         Microsoft.EntityFrameworkCore.DbSet<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>> UserRoles { get; }
 
+        DbSet<Property> Properties { get; }
+        DbSet<PropertyMedia> PropertyMedias { get; }
+        DbSet<PropertyDocument> PropertyDocuments { get; }
+        DbSet<PropertyFloorPlan> PropertyFloorPlans { get; }
+        DbSet<PropertyAuditLog> PropertyAuditLogs { get; }
+
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

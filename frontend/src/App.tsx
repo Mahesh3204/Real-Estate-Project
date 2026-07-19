@@ -24,6 +24,12 @@ import AdminPermissionsPage from './pages/Admin/AdminPermissionsPage';
 import AdminLocationsPage from './pages/Admin/AdminLocationsPage';
 import AdminMasterDataPage from './pages/Admin/AdminMasterDataPage';
 import AdminAuditLogsPage from './pages/Admin/AdminAuditLogsPage';
+import AdminPropertiesPage from './pages/Admin/AdminPropertiesPage';
+
+// Property pages
+import PropertyListPage from './pages/Property/PropertyListPage';
+import PropertyWizardPage from './pages/Property/PropertyWizardPage';
+import PropertyDetailsPage from './pages/Property/PropertyDetailsPage';
 
 const App: React.FC = () => {
   return (
@@ -46,12 +52,18 @@ const App: React.FC = () => {
           <Route path="/bookmarks" element={<FavoritesPage />} />
           <Route path="/inquiry-history" element={<InquiryHistoryPage />} />
           
+          {/* Property workspace routes */}
+          <Route path="/properties" element={<PropertyListPage />} />
+          <Route path="/properties/wizard" element={<PropertyWizardPage />} />
+          <Route path="/properties/view/:slugOrId" element={<PropertyDetailsPage />} />
+          
           {/* Admin panel routes */}
           <Route path="/admin/roles" element={<ProtectedRoute allowedRoles={['Admin']}><AdminRolesPage /></ProtectedRoute>} />
           <Route path="/admin/permissions" element={<ProtectedRoute allowedRoles={['Admin']}><AdminPermissionsPage /></ProtectedRoute>} />
           <Route path="/admin/locations" element={<ProtectedRoute allowedRoles={['Admin']}><AdminLocationsPage /></ProtectedRoute>} />
           <Route path="/admin/master-data" element={<ProtectedRoute allowedRoles={['Admin']}><AdminMasterDataPage /></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute allowedRoles={['Admin']}><AdminAuditLogsPage /></ProtectedRoute>} />
+          <Route path="/admin/properties" element={<ProtectedRoute allowedRoles={['Admin']}><AdminPropertiesPage /></ProtectedRoute>} />
         </Route>
 
         {/* Redirect Root / to Dashboard */}

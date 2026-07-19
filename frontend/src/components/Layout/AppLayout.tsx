@@ -13,7 +13,8 @@ import {
   FiSettings, 
   FiActivity, 
   FiLogOut,
-  FiChevronDown
+  FiChevronDown,
+  FiSliders
 } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
 
@@ -51,6 +52,10 @@ const AppLayout: React.FC = () => {
     if (path === '/admin/permissions') return 'System Access Keys';
     if (path === '/admin/locations') return 'Locations Management';
     if (path === '/admin/master-data') return 'Property Options Master Data';
+    if (path === '/properties') return 'Properties Workspace';
+    if (path === '/properties/wizard') return 'Property Wizard';
+    if (path.startsWith('/properties/view')) return 'Property Details';
+    if (path === '/admin/properties') return 'Moderate Listings';
     if (path === '/admin/audit-logs') return 'System Activity Log Trails';
     return 'Real Estate Portal';
   };
@@ -79,6 +84,14 @@ const AppLayout: React.FC = () => {
           >
             <FiGrid className="app-sidebar-link-icon" />
             <span>Dashboard</span>
+          </NavLink>
+
+          <NavLink 
+            to="/properties" 
+            className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+          >
+            <FiBookmark className="app-sidebar-link-icon" />
+            <span>Properties</span>
           </NavLink>
 
           <NavLink 
@@ -125,6 +138,14 @@ const AppLayout: React.FC = () => {
               >
                 <FiSettings className="app-sidebar-link-icon" />
                 <span>Property Options</span>
+              </NavLink>
+
+              <NavLink 
+                to="/admin/properties" 
+                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                <FiSliders className="app-sidebar-link-icon" />
+                <span>Moderate Listings</span>
               </NavLink>
 
               <NavLink 

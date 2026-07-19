@@ -19,5 +19,18 @@ namespace RealEstate.API.Controllers
             User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
             ?? throw new InvalidOperationException("User is not authenticated."));
+
+        protected Guid? CurrentUserIdOptional
+        {
+            get
+            {
+                if (User.Identity?.IsAuthenticated != true) return null;
+                var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                          ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                return val != null ? Guid.Parse(val) : null;
+            }
+        }
+
+        protected string? CurrentUserRole => User.FindFirst(ClaimTypes.Role)?.Value;
     }
 }
