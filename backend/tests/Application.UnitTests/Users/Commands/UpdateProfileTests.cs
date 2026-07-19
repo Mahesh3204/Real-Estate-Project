@@ -3,17 +3,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using RealEstate.Application.Users.Commands.UpdateProfile;
 using RealEstate.Application.Users.Queries.GetProfile;
 using RealEstate.Domain.Entities;
-using Xunit;
+using RealEstate.Infrastructure.Data;
 
 namespace RealEstate.Application.UnitTests.Users.Commands
 {
-    public class UpdateProfileTests
+    public class UpdateProfileTests : IDisposable
     {
         private readonly UserManager<User> _userManager;
+        private readonly ApplicationDbContext _context;
         private readonly UpdateUserProfileCommandHandler _updateHandler;
         private readonly GetUserProfileQueryHandler _getQueryHandler;
 
@@ -21,8 +23,16 @@ namespace RealEstate.Application.UnitTests.Users.Commands
         {
             var store = Substitute.For<IUserStore<User>>();
             _userManager = Substitute.For<UserManager<User>>(store, null, null, null, null, null, null, null, null);
-            _updateHandler = new UpdateUserProfileCommandHandler(_userManager);
-            _getQueryHandler = new GetUserProfileQueryHandler(_userManager);
+
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var currentUserService = Substitute.For<RealEstate.Application.Common.Interfaces.ICurrentUserService>();
+            _context = new ApplicationDbContext(options, currentUserService);
+
+            _updateHandler = new UpdateUserProfileCommandHandler(_userManager, _context);
+            _getQueryHandler = new GetUserProfileQueryHandler(_userManager, _context);
         }
 
         [Fact]
@@ -43,7 +53,7 @@ namespace RealEstate.Application.UnitTests.Users.Commands
                 UserId = user.Id,
                 FirstName = "NewName",
                 LastName = "NewLast",
-                PhoneNumber = "222"
+                Phone = "222"
             };
 
             _userManager.FindByIdAsync(command.UserId.ToString()).Returns(user);
@@ -86,8 +96,13 @@ namespace RealEstate.Application.UnitTests.Users.Commands
             result.Email.Should().Be(user.Email);
             result.FirstName.Should().Be(user.FirstName);
             result.LastName.Should().Be(user.LastName);
-            result.PhoneNumber.Should().Be(user.PhoneNumber);
+            result.Phone.Should().Be(user.PhoneNumber);
             result.Role.Should().Be(user.Role);
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }

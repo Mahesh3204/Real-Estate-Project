@@ -39,9 +39,16 @@ namespace RealEstate.Infrastructure
                 options.Password.RequireNonAlphanumeric = true;
                 options.User.RequireUniqueEmail = true;
             })
-            .AddRoles<IdentityRole<Guid>>()
+            .AddRoles<RealEstate.Domain.Entities.Role>()
+
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+            // Register HttpContextAccessor & CurrentUserService
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IFileUploadService, FileUploadService>();
+
 
             // Configure JWT Settings
             var jwtSecret = configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret is not configured.");

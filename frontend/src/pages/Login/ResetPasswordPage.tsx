@@ -96,8 +96,9 @@ const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="glass-card animate-fade-in">
-      <h2>{hasToken ? "Reset Password" : "Forgot Password"}</h2>
+    <div className="auth-layout-container">
+      <div className="glass-card animate-fade-in">
+        <h2>{hasToken ? "Reset Password" : "Forgot Password"}</h2>
       
       {error && <div className="alert-error">{error}</div>}
 
@@ -191,7 +192,8 @@ const ResetPasswordPage: React.FC = () => {
         </form>
       )}
     </div>
-  );
+  </div>
+);
 };
 
 export default ResetPasswordPage;

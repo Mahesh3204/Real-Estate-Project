@@ -49,8 +49,8 @@ const LoginPage: React.FC = () => {
       // Show success toast
       dispatch(showToast({ message: MESSAGES.LOGIN_SUCCESS, type: 'success' }));
 
-      // Redirect to profile
-      navigate('/profile');
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (err: any) {
       const errorResponse = err.response?.data;
       if (errorResponse?.errors) {
@@ -64,8 +64,10 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="glass-card animate-fade-in">
-      <h2>Welcome Back</h2>
+    <div className="auth-layout-container">
+      <div className="glass-card animate-fade-in">
+        <h2>Welcome Back</h2>
+
       <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '30px' }}>
         Enter your credentials to access your real estate portal.
       </p>
@@ -115,12 +117,12 @@ const LoginPage: React.FC = () => {
           Sign In
         </button>
       </form>
-
       <div className="footer-link">
         Don't have an account? <Link to="/register">Sign Up</Link>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default LoginPage;

@@ -6,6 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
 import { MESSAGES } from '../../constants/messages';
+import { useAppDispatch } from '../../store/hooks';
+import { showToast } from '../../store/toastSlice';
+
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -27,6 +30,7 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -60,23 +64,31 @@ const RegisterPage: React.FC = () => {
 
       const { userId } = response.data;
 
+      // Show success toast
+      dispatch(showToast({ message: 'Registration successful! Verification code sent.', type: 'success' }));
+
       // Navigate to OTP verification page and pass the registered user ID
       navigate('/verify', { state: { userId, email: data.email } });
     } catch (err: any) {
       const errorResponse = err.response?.data;
+      let message = MESSAGES.REGISTRATION_FAILED;
+      
       if (errorResponse?.errors) {
-        // FluentValidation formatted errors
-        const messages = Object.values(errorResponse.errors).flat().join(' ');
-        setError(messages);
-      } else {
-        setError(errorResponse?.detail || MESSAGES.REGISTRATION_FAILED);
+        message = Object.values(errorResponse.errors).flat().join(' ');
+      } else if (errorResponse?.detail) {
+        message = errorResponse.detail;
       }
+
+      setError(message);
+      dispatch(showToast({ message, type: 'error' }));
     }
   };
 
+
   return (
-    <div className="glass-card animate-fade-in">
-      <h2>Create Account</h2>
+    <div className="auth-layout-container">
+      <div className="glass-card animate-fade-in">
+        <h2>Create Account</h2>
       <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '25px' }}>
         Join our Real Estate Platform and explore listings.
       </p>
@@ -194,12 +206,12 @@ const RegisterPage: React.FC = () => {
           Sign Up
         </button>
       </form>
-
       <div className="footer-link">
         Already have an account? <Link to="/login">Sign In</Link>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default RegisterPage;

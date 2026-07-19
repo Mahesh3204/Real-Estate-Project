@@ -51,6 +51,15 @@ namespace RealEstate.Application.Users.Commands.RegisterUser
 
         public async Task<Guid> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null)
+            {
+                throw new RealEstate.Application.Common.Exceptions.ValidationException(new[]
+                {
+                    new FluentValidation.Results.ValidationFailure("Email", "user already exists with this email")
+                });
+            }
+
             var user = new User
             {
                 UserName = request.Email,
@@ -61,6 +70,7 @@ namespace RealEstate.Application.Users.Commands.RegisterUser
                 Role = request.Role,
                 IsVerified = false // Must verify email OTP
             };
+
 
             var result = await _userManager.CreateAsync(user, request.Password);
 

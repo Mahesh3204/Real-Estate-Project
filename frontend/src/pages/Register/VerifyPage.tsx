@@ -42,8 +42,9 @@ const VerifyPage: React.FC = () => {
   };
 
   return (
-    <div className="glass-card animate-fade-in">
-      <h2>Verify Account</h2>
+    <div className="auth-layout-container">
+      <div className="glass-card animate-fade-in">
+        <h2>Verify Account</h2>
       <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '30px' }}>
         We have sent a verification code to <strong>{email || "your email"}</strong>.
       </p>
@@ -72,7 +73,8 @@ const VerifyPage: React.FC = () => {
         </button>
       </form>
     </div>
-  );
+  </div>
+);
 };
 
 export default VerifyPage;

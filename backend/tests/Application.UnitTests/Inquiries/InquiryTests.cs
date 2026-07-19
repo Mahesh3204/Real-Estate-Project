@@ -22,7 +22,8 @@ namespace RealEstate.Application.UnitTests.Inquiries
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _context = new ApplicationDbContext(options);
+            _context = new ApplicationDbContext(options, NSubstitute.Substitute.For<RealEstate.Application.Common.Interfaces.ICurrentUserService>());
+
         }
 
         [Fact]
