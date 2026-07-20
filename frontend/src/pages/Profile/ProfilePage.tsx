@@ -7,6 +7,8 @@ import { showToast } from '../../store/toastSlice';
 import { roleApi } from '../../services/roleApi';
 import type { RoleRequestDto } from '../../services/roleApi';
 import { createPortal } from 'react-dom';
+import { RecentlyViewed } from './RecentlyViewed';
+import { SavedSearches } from './SavedSearches';
 
 
 
@@ -73,6 +75,7 @@ const ProfilePage: React.FC = () => {
   const [requestReason, setRequestReason] = useState('');
   const [requestRole, setRequestRole] = useState<'Seller' | 'Agent' | ''>('');
   const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile' | 'searches' | 'history'>('profile');
 
   useEffect(() => {
     if (user) {
@@ -390,11 +393,40 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {!isEditing && (
+        <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid var(--border)', marginBottom: '25px', paddingBottom: '5px' }}>
+          {[
+            { id: 'profile', label: 'Profile Details' },
+            { id: 'searches', label: 'Saved Searches' },
+            { id: 'history', label: 'Viewing History' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '10px 15px',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: activeTab === tab.id ? 'var(--accent)' : 'var(--text-secondary)',
+                borderBottom: activeTab === tab.id ? '2px solid var(--accent)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {error && <div style={{ padding: '12px', background: 'rgba(248,113,113,0.15)', border: '1px solid var(--error)', color: 'var(--error)', borderRadius: '12px', marginBottom: '20px' }}>{error}</div>}
       {success && <div style={{ padding: '12px', background: 'rgba(74,222,128,0.15)', border: '1px solid var(--success)', color: 'var(--success)', borderRadius: '12px', marginBottom: '20px' }}>{success}</div>}
 
       {!isEditing ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        activeTab === 'profile' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div>
               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>First Name</span>
@@ -577,7 +609,12 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
         </div>
+      ) : activeTab === 'searches' ? (
+        <SavedSearches />
       ) : (
+        <RecentlyViewed />
+      )
+    ) : (
         <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>

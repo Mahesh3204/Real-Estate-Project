@@ -82,7 +82,12 @@ namespace RealEstate.Infrastructure
 
             // Register Caching (Redis)
             var redisConnection = configuration["ConnectionStrings:Redis"] ?? "localhost:6379";
-            services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(redisConnection));
+            services.AddSingleton<IConnectionMultiplexer>(sp => 
+            {
+                var options = ConfigurationOptions.Parse(redisConnection);
+                options.AbortOnConnectFail = false;
+                return ConnectionMultiplexer.Connect(options);
+            });
 
             // Register Security & History Services
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

@@ -109,6 +109,18 @@ export interface PropertyFilters {
   listingType?: number;
   onlyOwner?: boolean;
   sortBy?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  minArea?: number;
+  maxArea?: number;
+  cityId?: string;
+  furnishedStatus?: string;
+  parking?: number;
+  yearBuilt?: number;
+  amenityIds?: string[];
+  propertyIds?: string[];
 }
 
 export const propertyApi = {
@@ -287,6 +299,14 @@ export const propertyApi = {
   duplicateProperty: async (id: string) => {
     const response = await apiClient.post<{ success: boolean; data: { id: string } }>(
       `/api/v1/properties/${id}/duplicate`
+    );
+    return response.data;
+  },
+
+  getRelatedProperties: async (id: string, count: number = 3) => {
+    const response = await apiClient.get<{ success: boolean; data: PropertyDto[] }>(
+      `/api/v1/properties/${id}/related`,
+      { params: { count } }
     );
     return response.data;
   },

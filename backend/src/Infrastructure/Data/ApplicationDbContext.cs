@@ -28,6 +28,7 @@ namespace RealEstate.Infrastructure.Data
         public DbSet<PropertyFavorite> PropertyFavorites { get; set; } = null!;
         public DbSet<PropertyInquiry> PropertyInquiries { get; set; } = null!;
         public DbSet<RecentlyViewed> RecentlyViewed { get; set; } = null!;
+        public DbSet<SavedSearch> SavedSearches { get; set; } = null!;
 
         // Foundation tables
         public DbSet<Permission> Permissions { get; set; } = null!;
@@ -321,6 +322,20 @@ namespace RealEstate.Infrastructure.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.UserId);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<SavedSearch>(entity =>
+            {
+                entity.ToTable("saved_searches");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.UserId);
+                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.QueryParameters).IsRequired();
 
                 entity.HasOne(e => e.User)
                     .WithMany()

@@ -10,6 +10,7 @@ namespace RealEstate.Application.Common.Interfaces
         DbSet<PropertyFavorite> PropertyFavorites { get; }
         DbSet<PropertyInquiry> PropertyInquiries { get; }
         DbSet<RecentlyViewed> RecentlyViewed { get; }
+        DbSet<SavedSearch> SavedSearches { get; }
 
         // New tables for foundation milestone
         DbSet<Permission> Permissions { get; }

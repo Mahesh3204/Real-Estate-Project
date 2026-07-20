@@ -49,8 +49,8 @@ const LoginPage: React.FC = () => {
       // Show success toast
       dispatch(showToast({ message: MESSAGES.LOGIN_SUCCESS, type: 'success' }));
 
-      // Redirect to dashboard
-      navigate('/dashboard');
+      // Redirect to home page
+      navigate('/');
     } catch (err: any) {
       const errorResponse = err.response?.data;
       if (errorResponse?.errors) {

@@ -8,5 +8,6 @@ namespace RealEstate.Application.Common.Interfaces
     {
         Task AddToHistoryAsync(Guid userId, Guid propertyId);
         Task<List<Guid>> GetHistoryAsync(Guid userId);
+        Task ClearHistoryAsync(Guid userId);
     }
 }

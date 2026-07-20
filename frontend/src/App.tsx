@@ -34,19 +34,33 @@ import PropertyListPage from './pages/Property/PropertyListPage';
 import PropertyWizardPage from './pages/Property/PropertyWizardPage';
 import PropertyDetailsPage from './pages/Property/PropertyDetailsPage';
 
+// Public Layout & Discovery pages
+import PublicLayout from './components/Layout/PublicLayout';
+import { HomePage } from './pages/Home/HomePage';
+import PublicPropertyListPage from './pages/Property/PublicPropertyListPage';
+import { PublicProfilePage } from './pages/Profile/PublicProfilePage';
+
 const App: React.FC = () => {
   return (
     <Router>
       <Loader />
       <Toast />
       <Routes>
-        {/* Public Routes */}
+        {/* Public Discovery Marketplace Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/listings" element={<PublicPropertyListPage />} />
+          <Route path="/compare" element={<ComparePage />} />
+          <Route path="/properties/view/:slugOrId" element={<PropertyDetailsPage />} />
+          <Route path="/partners/view/:id" element={<PublicProfilePage />} />
+        </Route>
+
+        {/* Public Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify" element={<VerifyPage />} />
         <Route path="/forgot-password" element={<ResetPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/compare" element={<ComparePage />} />
         
         {/* Protected App Layout Wrapper */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -58,7 +72,6 @@ const App: React.FC = () => {
           {/* Property workspace routes */}
           <Route path="/properties" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin', 'Buyer']}><PropertyListPage /></ProtectedRoute>} />
           <Route path="/properties/wizard" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin']}><PropertyWizardPage /></ProtectedRoute>} />
-          <Route path="/properties/view/:slugOrId" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin', 'Buyer']}><PropertyDetailsPage /></ProtectedRoute>} />
           
           {/* Admin panel routes */}
           <Route path="/admin/roles" element={<ProtectedRoute allowedRoles={['Admin']}><AdminRolesPage /></ProtectedRoute>} />
@@ -71,9 +84,6 @@ const App: React.FC = () => {
           <Route path="/admin/role-requests" element={<ProtectedRoute allowedRoles={['Admin']}><AdminRoleRequestsPage /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['Admin']}><AdminSettingsPage /></ProtectedRoute>} />
         </Route>
-
-        {/* Redirect Root / to Dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
         <Route path="/not-found" element={<NotFoundPage />} />
         <Route path="/internal-server-error" element={<ServerErrorPage />} />

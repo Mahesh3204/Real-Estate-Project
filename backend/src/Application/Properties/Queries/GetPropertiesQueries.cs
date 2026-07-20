@@ -142,6 +142,20 @@ namespace RealEstate.Application.Properties.Queries
         public bool OnlyOwner { get; set; } = false;
         public string SortBy { get; set; } = "newest";
 
+        // New Discovery Filters
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public int? Bedrooms { get; set; }
+        public int? Bathrooms { get; set; }
+        public decimal? MinArea { get; set; }
+        public decimal? MaxArea { get; set; }
+        public Guid? CityId { get; set; }
+        public string? FurnishedStatus { get; set; }
+        public int? Parking { get; set; }
+        public int? YearBuilt { get; set; }
+        public List<Guid>? AmenityIds { get; set; }
+        public List<Guid>? PropertyIds { get; set; } // For comparison list fetch
+
         // Context parameter passed from Controller
         public Guid? RequesterUserId { get; set; }
         public string? RequesterRole { get; set; }
@@ -224,7 +238,52 @@ namespace RealEstate.Application.Properties.Queries
                 var term = request.SearchQuery.ToLower();
                 query = query.Where(p => p.Title.ToLower().Contains(term) ||
                                          (p.Description != null && p.Description.ToLower().Contains(term)) ||
-                                         (p.Address != null && p.Address.ToLower().Contains(term)));
+                                         (p.Address != null && p.Address.ToLower().Contains(term)) ||
+                                         (p.AreaText != null && p.AreaText.ToLower().Contains(term)));
+            }
+
+            // New filters application
+            if (request.MinPrice.HasValue)
+                query = query.Where(p => p.Price >= request.MinPrice.Value);
+
+            if (request.MaxPrice.HasValue)
+                query = query.Where(p => p.Price <= request.MaxPrice.Value);
+
+            if (request.Bedrooms.HasValue)
+                query = query.Where(p => p.Bedrooms == request.Bedrooms.Value);
+
+            if (request.Bathrooms.HasValue)
+                query = query.Where(p => p.Bathrooms == request.Bathrooms.Value);
+
+            if (request.MinArea.HasValue)
+                query = query.Where(p => p.Area >= request.MinArea.Value);
+
+            if (request.MaxArea.HasValue)
+                query = query.Where(p => p.Area <= request.MaxArea.Value);
+
+            if (request.CityId.HasValue)
+                query = query.Where(p => p.CityId == request.CityId.Value);
+
+            if (!string.IsNullOrWhiteSpace(request.FurnishedStatus))
+                query = query.Where(p => p.FurnishedStatus != null && p.FurnishedStatus.ToLower() == request.FurnishedStatus.ToLower());
+
+            if (request.Parking.HasValue)
+                query = query.Where(p => p.Parking >= request.Parking.Value);
+
+            if (request.YearBuilt.HasValue)
+                query = query.Where(p => p.YearBuilt >= request.YearBuilt.Value);
+
+            if (request.AmenityIds != null && request.AmenityIds.Any())
+            {
+                foreach (var amenityId in request.AmenityIds)
+                {
+                    query = query.Where(p => p.Amenities.Any(a => a.Id == amenityId));
+                }
+            }
+
+            if (request.PropertyIds != null && request.PropertyIds.Any())
+            {
+                query = query.Where(p => request.PropertyIds.Contains(p.Id));
             }
 
             // Sorting
@@ -233,6 +292,8 @@ namespace RealEstate.Application.Properties.Queries
                 "price_asc" => query.OrderBy(p => p.Price),
                 "price_desc" => query.OrderByDescending(p => p.Price),
                 "oldest" => query.OrderBy(p => p.CreatedDate),
+                "area_asc" => query.OrderBy(p => p.Area),
+                "area_desc" => query.OrderByDescending(p => p.Area),
                 _ => query.OrderByDescending(p => p.CreatedDate)
             };
 

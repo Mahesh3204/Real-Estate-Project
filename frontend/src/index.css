@@ -130,6 +130,15 @@ h1, h2, h3 {
   box-shadow: 0 0 0 4px rgba(170, 59, 255, 0.12);
 }
 
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
 .btn-primary {
   width: 100%;
   padding: 15px;
@@ -478,6 +487,50 @@ h1, h2, h3 {
   position: sticky;
   top: 0;
   z-index: 90;
+  transition: width 0.2s ease-in-out;
+}
+
+.app-sidebar.collapsed {
+  width: 78px;
+}
+
+.app-sidebar.collapsed .app-sidebar-logo {
+  padding: 0;
+  justify-content: center;
+}
+
+.app-sidebar.collapsed .app-sidebar-logo h3 {
+  display: none;
+}
+
+.app-sidebar.collapsed .app-sidebar-logo .logo-emblem {
+  display: block;
+}
+
+.logo-emblem {
+  display: none;
+  font-family: var(--heading);
+  font-weight: 750;
+  font-size: 24px;
+  color: var(--accent);
+}
+
+.app-sidebar.collapsed .app-sidebar-link {
+  justify-content: center;
+  padding: 12px;
+}
+
+.app-sidebar.collapsed .app-sidebar-link span {
+  display: none;
+}
+
+.app-sidebar.collapsed .app-sidebar-link svg {
+  margin: 0;
+  font-size: 20px;
+}
+
+.app-sidebar.collapsed .app-sidebar-link .accordion-chevron {
+  display: none;
 }
 
 .app-sidebar-logo {

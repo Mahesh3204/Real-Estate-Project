@@ -105,5 +105,29 @@ namespace RealEstate.Infrastructure.Services
 
             return history;
         }
+
+        public async Task ClearHistoryAsync(Guid userId)
+        {
+            var entries = await _context.RecentlyViewed
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+
+            if (entries.Count > 0)
+            {
+                _context.RecentlyViewed.RemoveRange(entries);
+                await _context.SaveChangesAsync();
+            }
+
+            try
+            {
+                var db = _redis.GetDatabase();
+                var redisKey = $"user:recently-viewed:{userId}";
+                await db.KeyDeleteAsync(redisKey);
+            }
+            catch (Exception)
+            {
+                // Fail silently
+            }
+        }
     }
 }

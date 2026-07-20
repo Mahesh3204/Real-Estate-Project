@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout, updateUser } from '../../store/authSlice';
 import { 
@@ -14,9 +14,12 @@ import {
   FiActivity, 
   FiLogOut,
   FiChevronDown,
+  FiChevronLeft,
+  FiChevronRight,
   FiSliders,
   FiUsers,
-  FiList
+  FiList,
+  FiHome
 } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
 import { roleApi } from '../../services/roleApi';
@@ -28,6 +31,18 @@ const AppLayout: React.FC = () => {
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMarketplaceExpanded, setIsMarketplaceExpanded] = useState(false);
+  const [isAdminExpanded, setIsAdminExpanded] = useState(() => {
+    return location.pathname.startsWith('/admin/');
+  });
+
+  // Auto-expand admin accordion if admin path is accessed
+  useEffect(() => {
+    if (location.pathname.startsWith('/admin/')) {
+      setIsAdminExpanded(true);
+    }
+  }, [location.pathname]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -78,12 +93,72 @@ const AppLayout: React.FC = () => {
   return (
     <div className="app-layout">
       {/* Sidebar Section */}
-      <aside className="app-sidebar">
-        <div className="app-sidebar-logo">
-          <h3>Gentry Estates</h3>
+      <aside className={`app-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="app-sidebar-logo flex justify-between items-center px-4">
+          <Link to="/" className="flex items-center gap-2 cursor-pointer no-underline">
+            <span className="logo-emblem">GE</span>
+            <h3 className={isSidebarCollapsed ? 'hidden' : ''}>Gentry Estates</h3>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-1.5 text-text-secondary hover:text-text-primary rounded hover:bg-white/5 cursor-pointer transition-colors"
+          >
+            {isSidebarCollapsed ? <FiChevronRight size={18} /> : <FiChevronLeft size={18} />}
+          </button>
         </div>
 
         <nav className="app-sidebar-nav">
+          {/* Marketplace Collapsible Accordion */}
+          <div className="flex flex-col">
+            <button 
+              onClick={() => {
+                if (isSidebarCollapsed) {
+                  setIsSidebarCollapsed(false);
+                }
+                setIsMarketplaceExpanded(!isMarketplaceExpanded);
+              }}
+              className="app-sidebar-link flex items-center justify-between cursor-pointer w-full text-left outline-none"
+            >
+              <div className="flex items-center gap-2.5">
+                <FiHome className="app-sidebar-link-icon" />
+                <span>Marketplace</span>
+              </div>
+              <FiChevronDown 
+                className={`accordion-chevron transition-transform duration-200 ${isMarketplaceExpanded ? 'transform rotate-180' : ''}`} 
+                size={16} 
+              />
+            </button>
+            
+            {isMarketplaceExpanded && !isSidebarCollapsed && (
+              <div className="pl-4 flex flex-col gap-2 mt-2 border-l border-border/20 ml-5 animate-fade-in">
+                <NavLink 
+                  to="/listings" 
+                  className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  <FiList className="app-sidebar-link-icon" />
+                  <span>Browse Properties</span>
+                </NavLink>
+
+                <NavLink 
+                  to="/compare" 
+                  className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  <FiSliders className="app-sidebar-link-icon" />
+                  <span>Compare</span>
+                </NavLink>
+
+                <NavLink 
+                  to="/bookmarks" 
+                  className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  <FiBookmark className="app-sidebar-link-icon" />
+                  <span>Favorites</span>
+                </NavLink>
+              </div>
+            )}
+          </div>
+
           <NavLink 
             to="/dashboard" 
             className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
@@ -109,83 +184,104 @@ const AppLayout: React.FC = () => {
           </NavLink>
 
 
-          {/* Admin console section - only visible when active role is Admin */}
+          {/* Collapsible Admin Console Accordion */}
           {(user?.activeRole === 'Admin' || (!user?.activeRole && user?.role === 'Admin')) && (
-            <>
-              <div className="app-sidebar-section-title">Admin Console</div>
+            <div className="flex flex-col">
+              <button 
+                onClick={() => {
+                  if (isSidebarCollapsed) {
+                    setIsSidebarCollapsed(false);
+                  }
+                  setIsAdminExpanded(!isAdminExpanded);
+                }}
+                className="app-sidebar-link flex items-center justify-between cursor-pointer w-full text-left outline-none"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FiShield className="app-sidebar-link-icon" />
+                  <span>Admin Console</span>
+                </div>
+                <FiChevronDown 
+                  className={`accordion-chevron transition-transform duration-200 ${isAdminExpanded ? 'transform rotate-180' : ''}`} 
+                  size={16} 
+                />
+              </button>
               
-              <NavLink 
-                to="/admin/users" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiUsers className="app-sidebar-link-icon" />
-                <span>Users Management</span>
-              </NavLink>
+              {isAdminExpanded && !isSidebarCollapsed && (
+                <div className="pl-4 flex flex-col gap-2 mt-2 border-l border-border/20 ml-5 animate-fade-in">
+                  <NavLink 
+                    to="/admin/users" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiUsers className="app-sidebar-link-icon" />
+                    <span>Users</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/role-requests" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiList className="app-sidebar-link-icon" />
-                <span>Role Requests</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/role-requests" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiList className="app-sidebar-link-icon" />
+                    <span>Role Requests</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/roles" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiShield className="app-sidebar-link-icon" />
-                <span>Roles</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/roles" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiShield className="app-sidebar-link-icon" />
+                    <span>Roles</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/permissions" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiKey className="app-sidebar-link-icon" />
-                <span>Permissions</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/permissions" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiKey className="app-sidebar-link-icon" />
+                    <span>Permissions</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/locations" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiMapPin className="app-sidebar-link-icon" />
-                <span>Locations</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/locations" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiMapPin className="app-sidebar-link-icon" />
+                    <span>Locations</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/master-data" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiSettings className="app-sidebar-link-icon" />
-                <span>Property Options</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/master-data" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiSettings className="app-sidebar-link-icon" />
+                    <span>Property Options</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/properties" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiSliders className="app-sidebar-link-icon" />
-                <span>Moderate Listings</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/properties" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiSliders className="app-sidebar-link-icon" />
+                    <span>Moderate Listings</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/audit-logs" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiActivity className="app-sidebar-link-icon" />
-                <span>Audit Logs</span>
-              </NavLink>
+                  <NavLink 
+                    to="/admin/audit-logs" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiActivity className="app-sidebar-link-icon" />
+                    <span>Audit Logs</span>
+                  </NavLink>
 
-              <NavLink 
-                to="/admin/settings" 
-                className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                <FiSettings className="app-sidebar-link-icon" />
-                <span>Platform Settings</span>
-              </NavLink>
-            </>
+                  <NavLink 
+                    to="/admin/settings" 
+                    className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <FiSettings className="app-sidebar-link-icon" />
+                    <span>Platform Settings</span>
+                  </NavLink>
+                </div>
+              )}
+            </div>
           )}
         </nav>
       </aside>

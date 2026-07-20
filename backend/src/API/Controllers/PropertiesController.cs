@@ -52,6 +52,14 @@ namespace RealEstate.API.Controllers
             return Ok(new { Success = true, Data = result });
         }
 
+        [HttpGet("{id}/related")]
+        [AllowAnonymous]
+        public async Task<ActionResult<List<PropertyDto>>> GetRelatedProperties(Guid id, [FromQuery] int count = 3)
+        {
+            var result = await Mediator.Send(new GetRelatedPropertiesQuery { PropertyId = id, Count = count });
+            return Ok(new { Success = true, Data = result });
+        }
+
         [HttpGet("slug/{slug}")]
         [AllowAnonymous]
         public async Task<ActionResult<PropertyDetailsDto>> GetPropertyBySlug(string slug)
