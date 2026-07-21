@@ -7,6 +7,7 @@ using RealEstate.Application.Inquiries.Commands.CreateInquiry;
 using RealEstate.Application.Inquiries.Commands.UpdateInquiryStatus;
 using RealEstate.Application.Inquiries.Queries.GetInquiryHistory;
 using RealEstate.Domain.Entities;
+using RealEstate.Domain.Enums;
 using RealEstate.Infrastructure.Data;
 using Xunit;
 
@@ -23,7 +24,6 @@ namespace RealEstate.Application.UnitTests.Inquiries
                 .Options;
 
             _context = new ApplicationDbContext(options, NSubstitute.Substitute.For<RealEstate.Application.Common.Interfaces.ICurrentUserService>());
-
         }
 
         [Fact]
@@ -34,7 +34,12 @@ namespace RealEstate.Application.UnitTests.Inquiries
             {
                 BuyerId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
-                Message = "Hello, I am interested in this property."
+                Subject = "Inquiry Subject",
+                Message = "Hello, I am interested in this property.",
+                Phone = "+1234567890",
+                Email = "buyer@example.com",
+                PreferredContactMethod = PreferredContactMethod.Email,
+                PreferredContactTime = "Afternoons"
             };
 
             var handler = new CreateInquiryCommandHandler(_context);
@@ -46,9 +51,14 @@ namespace RealEstate.Application.UnitTests.Inquiries
             result.Should().NotBeEmpty();
             var saved = await _context.PropertyInquiries.FindAsync(result);
             saved.Should().NotBeNull();
-            saved!.Message.Should().Be(command.Message);
+            saved!.Subject.Should().Be(command.Subject);
+            saved.Message.Should().Be(command.Message);
+            saved.Phone.Should().Be(command.Phone);
+            saved.Email.Should().Be(command.Email);
+            saved.PreferredContactMethod.Should().Be(command.PreferredContactMethod);
+            saved.PreferredContactTime.Should().Be(command.PreferredContactTime);
             saved.BuyerId.Should().Be(command.BuyerId);
-            saved.Status.Should().Be("Submitted");
+            saved.Status.Should().Be(InquiryStatus.New);
         }
 
         [Fact]
@@ -57,9 +67,9 @@ namespace RealEstate.Application.UnitTests.Inquiries
             // Arrange
             var buyerId = Guid.NewGuid();
             _context.PropertyInquiries.AddRange(
-                new PropertyInquiry { BuyerId = buyerId, PropertyId = Guid.NewGuid(), Message = "Inquiry 1", Status = "Submitted" },
-                new PropertyInquiry { BuyerId = buyerId, PropertyId = Guid.NewGuid(), Message = "Inquiry 2", Status = "Read" },
-                new PropertyInquiry { BuyerId = Guid.NewGuid(), PropertyId = Guid.NewGuid(), Message = "Other Inquiry", Status = "Submitted" }
+                new PropertyInquiry { BuyerId = buyerId, PropertyId = Guid.NewGuid(), Subject = "S1", Message = "Inquiry 1", Status = InquiryStatus.New, Phone = "123", Email = "a@a.com" },
+                new PropertyInquiry { BuyerId = buyerId, PropertyId = Guid.NewGuid(), Subject = "S2", Message = "Inquiry 2", Status = InquiryStatus.Read, Phone = "123", Email = "a@a.com" },
+                new PropertyInquiry { BuyerId = Guid.NewGuid(), PropertyId = Guid.NewGuid(), Subject = "S3", Message = "Other Inquiry", Status = InquiryStatus.New, Phone = "123", Email = "a@a.com" }
             );
             await _context.SaveChangesAsync();
 
@@ -71,8 +81,8 @@ namespace RealEstate.Application.UnitTests.Inquiries
 
             // Assert
             result.Should().HaveCount(2);
-            result.Should().Contain(i => i.Message == "Inquiry 1");
-            result.Should().Contain(i => i.Message == "Inquiry 2");
+            result.Should().Contain(i => i.Message == "Inquiry 1" && i.Status == "New");
+            result.Should().Contain(i => i.Message == "Inquiry 2" && i.Status == "Read");
         }
 
         [Fact]
@@ -83,8 +93,11 @@ namespace RealEstate.Application.UnitTests.Inquiries
             {
                 BuyerId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
+                Subject = "Inquiry Subject",
                 Message = "Interested",
-                Status = "Submitted"
+                Phone = "123",
+                Email = "a@a.com",
+                Status = InquiryStatus.New
             };
             _context.PropertyInquiries.Add(inquiry);
             await _context.SaveChangesAsync();
@@ -102,7 +115,7 @@ namespace RealEstate.Application.UnitTests.Inquiries
             // Assert
             result.Should().BeTrue();
             var updated = await _context.PropertyInquiries.FindAsync(inquiry.Id);
-            updated!.Status.Should().Be("Read");
+            updated!.Status.Should().Be(InquiryStatus.Read);
         }
 
         public void Dispose()

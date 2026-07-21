@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RealEstate.Application.Inquiries.Commands.CreateInquiry;
 using RealEstate.Application.Inquiries.Commands.UpdateInquiryStatus;
+using RealEstate.Application.Inquiries.Commands.ReplyToInquiry;
+using RealEstate.Application.Inquiries.Commands.SoftDeleteInquiry;
 using RealEstate.Application.Inquiries.Queries.GetInquiryHistory;
 
 namespace RealEstate.API.Controllers
@@ -41,6 +43,25 @@ namespace RealEstate.API.Controllers
                 Status = status
             });
             return Ok(new { Success = success, Message = "Inquiry status updated." });
+        }
+
+        [HttpPost("{inquiryId}/reply")]
+        public async Task<IActionResult> ReplyToInquiry(Guid inquiryId, [FromBody] ReplyToInquiryCommand command)
+        {
+            if (inquiryId != command.InquiryId)
+            {
+                return BadRequest("Inquiry ID mismatch.");
+            }
+
+            var success = await Mediator.Send(command);
+            return Ok(new { Success = success, Message = "Reply posted successfully." });
+        }
+
+        [HttpDelete("{inquiryId}")]
+        public async Task<IActionResult> SoftDeleteInquiry(Guid inquiryId)
+        {
+            var success = await Mediator.Send(new SoftDeleteInquiryCommand { InquiryId = inquiryId });
+            return Ok(new { Success = success, Message = "Inquiry deleted successfully." });
         }
     }
 }

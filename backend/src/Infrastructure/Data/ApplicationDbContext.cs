@@ -56,6 +56,13 @@ namespace RealEstate.Infrastructure.Data
         public DbSet<RoleRequestHistory> RoleRequestHistories { get; set; } = null!;
         public DbSet<SystemSetting> SystemSettings { get; set; } = null!;
 
+        public DbSet<Appointment> Appointments { get; set; } = null!;
+        public DbSet<Conversation> Conversations { get; set; } = null!;
+        public DbSet<Message> Messages { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<Offer> Offers { get; set; } = null!;
+        public DbSet<Review> Reviews { get; set; } = null!;
+
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -501,6 +508,136 @@ namespace RealEstate.Infrastructure.Data
                 entity.HasKey(s => s.Key);
                 entity.Property(s => s.Key).HasMaxLength(100);
                 entity.Property(s => s.Value).HasMaxLength(500);
+            });
+
+            // Configure PropertyInquiry overrides
+            builder.Entity<PropertyInquiry>(entity =>
+            {
+                entity.ToTable("property_inquiries");
+                entity.HasIndex(e => new { e.BuyerId, e.IsDeleted });
+                entity.HasIndex(e => new { e.PropertyId, e.IsDeleted });
+                entity.HasOne(e => e.Property)
+                    .WithMany()
+                    .HasForeignKey(e => e.PropertyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.Status)
+                    .HasConversion<string>()
+                    .HasMaxLength(50);
+            });
+
+            // Configure Appointment
+            builder.Entity<Appointment>(entity =>
+            {
+                entity.ToTable("appointments");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.BuyerId, e.PropertyId, e.Status })
+                    .HasFilter("\"Status\" = 0") // Filtered index for Pending (0)
+                    .IsUnique();
+
+                entity.HasOne(e => e.Property)
+                    .WithMany()
+                    .HasForeignKey(e => e.PropertyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Buyer)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Conversation
+            builder.Entity<Conversation>(entity =>
+            {
+                entity.ToTable("conversations");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.BuyerId, e.PropertyId }).IsUnique();
+
+                entity.HasOne(e => e.Property)
+                    .WithMany()
+                    .HasForeignKey(e => e.PropertyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Buyer)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Seller)
+                    .WithMany()
+                    .HasForeignKey(e => e.SellerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure Message
+            builder.Entity<Message>(entity =>
+            {
+                entity.ToTable("messages");
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Conversation)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(e => e.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure Notification
+            builder.Entity<Notification>(entity =>
+            {
+                entity.ToTable("notifications");
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Recipient)
+                    .WithMany()
+                    .HasForeignKey(e => e.RecipientId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Offer
+            builder.Entity<Offer>(entity =>
+            {
+                entity.ToTable("offers");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.BuyerId, e.PropertyId, e.Status })
+                    .HasFilter("\"Status\" = 0") // Enforce single active pending offer
+                    .IsUnique();
+
+                entity.HasOne(e => e.Property)
+                    .WithMany()
+                    .HasForeignKey(e => e.PropertyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Buyer)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Review
+            builder.Entity<Review>(entity =>
+            {
+                entity.ToTable("reviews");
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Property)
+                    .WithMany()
+                    .HasForeignKey(e => e.PropertyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Buyer)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Seller)
+                    .WithMany()
+                    .HasForeignKey(e => e.SellerId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

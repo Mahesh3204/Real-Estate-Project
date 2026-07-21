@@ -3,6 +3,8 @@ import authReducer from './authSlice';
 import loaderReducer from './loaderSlice';
 import toastReducer from './toastSlice';
 import propertyReducer from './propertySlice';
+import chatReducer from './chatSlice';
+import notificationReducer from './notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
     loader: loaderReducer,
     toast: toastReducer,
     property: propertyReducer,
+    chat: chatReducer,
+    notification: notificationReducer,
   },
 });
 

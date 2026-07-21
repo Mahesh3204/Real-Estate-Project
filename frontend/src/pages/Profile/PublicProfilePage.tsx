@@ -7,7 +7,9 @@ import { favoritesApi } from '../../services/favoritesApi';
 import type { PropertyDto } from '../../services/propertyApi';
 import { PropertyCard } from '../../components/Property/PropertyCard';
 import { CompareDrawer } from '../../components/Property/CompareDrawer';
-import { FiMail, FiPhone, FiUser, FiArrowLeft, FiGrid, FiList } from 'react-icons/fi';
+import { FiMail, FiPhone, FiUser, FiArrowLeft, FiGrid, FiList, FiStar } from 'react-icons/fi';
+import ReviewSection from '../../components/Communication/ReviewSection';
+import ReviewModal from '../../components/Communication/ReviewModal';
 
 export const PublicProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +21,9 @@ export const PublicProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRefreshKey, setReviewRefreshKey] = useState(0);
 
   // Cache/toggles states
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -256,8 +261,47 @@ export const PublicProfilePage: React.FC = () => {
               ))}
             </div>
           )}
+
+          {/* Reviews Section */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold flex items-center gap-2"
+                style={{ fontFamily: 'var(--heading)', color: 'var(--text-primary)' }}>
+                <FiStar style={{ color: '#fbbf24' }} /> Reviews & Ratings
+              </h3>
+              {user && (
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
+                  style={{
+                    background: 'rgba(251,191,36,0.12)',
+                    color: '#fbbf24',
+                    border: '1px solid rgba(251,191,36,0.25)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <FiStar size={14} /> Write Review
+                </button>
+              )}
+            </div>
+            <ReviewSection
+              key={reviewRefreshKey}
+              sellerId={id}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && id && (
+        <ReviewModal
+          propertyId=""
+          sellerId={id}
+          propertyName={`${profile.firstName} ${profile.lastName}`}
+          onClose={() => setShowReviewModal(false)}
+          onSuccess={() => { setShowReviewModal(false); setReviewRefreshKey((k) => k + 1); }}
+        />
+      )}
 
       {/* Sticky Bottom Compare Bar */}
       <CompareDrawer 

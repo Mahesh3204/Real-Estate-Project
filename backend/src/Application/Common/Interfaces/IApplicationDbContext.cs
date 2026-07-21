@@ -28,6 +28,7 @@ namespace RealEstate.Application.Common.Interfaces
         DbSet<RealEstate.Domain.Entities.File> Files { get; }
         DbSet<AuditLog> AuditLogs { get; }
         Microsoft.EntityFrameworkCore.DbSet<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>> UserRoles { get; }
+        DbSet<User> Users { get; }
 
         DbSet<Property> Properties { get; }
         DbSet<PropertyMedia> PropertyMedias { get; }
@@ -39,6 +40,12 @@ namespace RealEstate.Application.Common.Interfaces
         DbSet<RoleRequestHistory> RoleRequestHistories { get; }
         DbSet<SystemSetting> SystemSettings { get; }
 
+        DbSet<Appointment> Appointments { get; }
+        DbSet<Conversation> Conversations { get; }
+        DbSet<Message> Messages { get; }
+        DbSet<Notification> Notifications { get; }
+        DbSet<Offer> Offers { get; }
+        DbSet<Review> Reviews { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

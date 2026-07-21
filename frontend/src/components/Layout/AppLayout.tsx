@@ -23,6 +23,7 @@ import {
 } from 'react-icons/fi';
 import apiClient from '../../services/apiClient';
 import { roleApi } from '../../services/roleApi';
+import NotificationDropdown from './NotificationDropdown';
 
 const AppLayout: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -66,6 +67,11 @@ const AppLayout: React.FC = () => {
     if (path === '/profile') return 'User Profile';
     if (path === '/bookmarks') return 'Bookmarked Properties';
     if (path === '/inquiry-history') return 'Inquiries Feed';
+    if (path === '/inquiries') return 'Inquiry Inbox';
+    if (path === '/appointments') return 'Appointments';
+    if (path === '/messenger') return 'Messenger';
+    if (path === '/negotiations') return 'Offer Negotiations';
+    if (path === '/notifications') return 'Notifications';
     if (path === '/admin/roles') return 'Roles Configuration';
     if (path === '/admin/permissions') return 'System Access Keys';
     if (path === '/admin/locations') return 'Locations Management';
@@ -183,6 +189,29 @@ const AppLayout: React.FC = () => {
             <span>Inquiries</span>
           </NavLink>
 
+          <NavLink 
+            to="/appointments" 
+            className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+          >
+            <FiMessageSquare className="app-sidebar-link-icon" />
+            <span>Appointments</span>
+          </NavLink>
+
+          <NavLink 
+            to="/messenger" 
+            className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+          >
+            <FiMessageSquare className="app-sidebar-link-icon" />
+            <span>Messenger</span>
+          </NavLink>
+
+          <NavLink 
+            to="/negotiations" 
+            className={({ isActive }) => `app-sidebar-link ${isActive ? 'active' : ''}`}
+          >
+            <FiMessageSquare className="app-sidebar-link-icon" />
+            <span>Negotiations</span>
+          </NavLink>
 
           {/* Collapsible Admin Console Accordion */}
           {(user?.activeRole === 'Admin' || (!user?.activeRole && user?.role === 'Admin')) && (
@@ -295,7 +324,9 @@ const AppLayout: React.FC = () => {
           </div>
 
           {/* User Profile Toggler */}
-          <div className="navbar-user-dropdown" ref={dropdownRef}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <NotificationDropdown />
+            <div className="navbar-user-dropdown" ref={dropdownRef}>
             <button 
               type="button" 
               className="navbar-avatar-btn" 
@@ -401,6 +432,7 @@ const AppLayout: React.FC = () => {
                 </button>
               </div>
             )}
+            </div>
           </div>
         </header>
 

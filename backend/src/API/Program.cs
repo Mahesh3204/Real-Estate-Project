@@ -29,6 +29,9 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
+
+builder.Services.AddScoped<RealEstate.Application.Common.Interfaces.IChatNotificationService, RealEstate.API.Services.ChatNotificationService>();
 
 // Register dynamic permission checks
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -51,6 +54,9 @@ app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<RealEstate.API.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<RealEstate.API.Hubs.NotificationHub>("/hubs/notifications");
 
 app.MapControllers();
 

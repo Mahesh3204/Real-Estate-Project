@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using FluentValidation;
 using MediatR;
 using RealEstate.Application.Common.Interfaces;
+using RealEstate.Domain.Enums;
 
 namespace RealEstate.Application.Inquiries.Commands.UpdateInquiryStatus
 {
     public class UpdateInquiryStatusCommand : IRequest<bool>
     {
         public Guid InquiryId { get; set; }
-        public string Status { get; set; } = string.Empty; // "Submitted", "Read", "Responded", "Closed", "Archived"
+        public string Status { get; set; } = string.Empty; // "New", "Read", "Replied", "InProgress", "Closed", "Cancelled"
     }
 
     public class UpdateInquiryStatusCommandValidator : AbstractValidator<UpdateInquiryStatusCommand>
@@ -18,8 +19,8 @@ namespace RealEstate.Application.Inquiries.Commands.UpdateInquiryStatus
         public UpdateInquiryStatusCommandValidator()
         {
             RuleFor(x => x.InquiryId).NotEmpty();
-            RuleFor(x => x.Status).Must(status => status is "Submitted" or "Read" or "Responded" or "Closed" or "Archived")
-                .WithMessage("Status must be one of the following: Submitted, Read, Responded, Closed, Archived.");
+            RuleFor(x => x.Status).Must(status => Enum.TryParse<InquiryStatus>(status, true, out _))
+                .WithMessage("Status must be a valid InquiryStatus: New, Read, Replied, InProgress, Closed, Cancelled.");
         }
     }
 
@@ -41,7 +42,10 @@ namespace RealEstate.Application.Inquiries.Commands.UpdateInquiryStatus
                 throw new Exception("Inquiry not found.");
             }
 
-            inquiry.Status = request.Status;
+            if (Enum.TryParse<InquiryStatus>(request.Status, true, out var parsedStatus))
+            {
+                inquiry.Status = parsedStatus;
+            }
             inquiry.LastUpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);

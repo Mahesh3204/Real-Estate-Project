@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RealEstate.Application.Common.Interfaces;
+using RealEstate.Domain.Enums;
 
 namespace RealEstate.Application.Inquiries.Queries.GetInquiryHistory
 {
@@ -14,7 +15,12 @@ namespace RealEstate.Application.Inquiries.Queries.GetInquiryHistory
         public Guid Id { get; set; }
         public Guid BuyerId { get; set; }
         public Guid PropertyId { get; set; }
+        public string Subject { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public PreferredContactMethod PreferredContactMethod { get; set; }
+        public string PreferredContactTime { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdatedAt { get; set; }
@@ -37,15 +43,20 @@ namespace RealEstate.Application.Inquiries.Queries.GetInquiryHistory
         public async Task<List<InquiryDto>> Handle(GetInquiryHistoryQuery request, CancellationToken cancellationToken)
         {
             var inquiries = await _context.PropertyInquiries
-                .Where(i => i.BuyerId == request.BuyerId)
+                .Where(i => i.BuyerId == request.BuyerId && !i.IsDeleted)
                 .OrderByDescending(i => i.CreatedAt)
                 .Select(i => new InquiryDto
                 {
                     Id = i.Id,
                     BuyerId = i.BuyerId,
                     PropertyId = i.PropertyId,
+                    Subject = i.Subject,
                     Message = i.Message,
-                    Status = i.Status,
+                    Phone = i.Phone,
+                    Email = i.Email,
+                    PreferredContactMethod = i.PreferredContactMethod,
+                    PreferredContactTime = i.PreferredContactTime,
+                    Status = i.Status.ToString(),
                     CreatedAt = i.CreatedAt,
                     LastUpdatedAt = i.LastUpdatedAt
                 })

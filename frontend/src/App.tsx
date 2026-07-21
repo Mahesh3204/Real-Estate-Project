@@ -40,6 +40,13 @@ import { HomePage } from './pages/Home/HomePage';
 import PublicPropertyListPage from './pages/Property/PublicPropertyListPage';
 import { PublicProfilePage } from './pages/Profile/PublicProfilePage';
 
+// Communication pages
+import InquiryInboxPage from './pages/Communication/InquiryInboxPage';
+import AppointmentsPage from './pages/Communication/AppointmentsPage';
+import MessengerPage from './pages/Communication/MessengerPage';
+import NegotiationPage from './pages/Communication/NegotiationPage';
+import NotificationsPage from './pages/Communication/NotificationsPage';
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -68,6 +75,13 @@ const App: React.FC = () => {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/bookmarks" element={<FavoritesPage />} />
           <Route path="/inquiry-history" element={<InquiryHistoryPage />} />
+
+          {/* Communication routes */}
+          <Route path="/inquiries" element={<InquiryInboxPage />} />
+          <Route path="/appointments" element={<AppointmentsPage />} />
+          <Route path="/messenger" element={<MessengerPage />} />
+          <Route path="/negotiations" element={<NegotiationPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           
           {/* Property workspace routes */}
           <Route path="/properties" element={<ProtectedRoute allowedRoles={['Seller', 'Agent', 'Admin', 'Buyer']}><PropertyListPage /></ProtectedRoute>} />
